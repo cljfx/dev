@@ -96,6 +96,7 @@
    id))
 
 (defn ^{:arglists '([id & {:keys [spec of]}])} register-type! [id & {:as opts}]
+  {:pre [(ident? id)]}
   (swap! registry update :types assoc id (assoc opts :id id))
   id)
 
@@ -113,9 +114,12 @@
           id (*type->id* type)]
       (if (nil? id)
         true
-        (if-let [desc-c-sym (-> @registry :types id :of)]
-          ;; todo: doesn't have to be a sym, could be a way to get the sym
-          (isa? (resolve desc-c-sym) (resolve c-sym))
+        (if-let [of (-> @registry :types id :of)]
+          (cond
+            (symbol? of) (isa? (resolve of) (resolve c-sym))
+            (keyword? of) (recur (get desc of))
+            :else (throw (ex-info (str "Unknown 'instance of' definition: " of)
+                                  {:of of})))
           true)))))
 
 (defmulti keyword-prop->spec-form :type)
@@ -149,5 +153,6 @@
 
 (load "definitions")
 
-; todo annotate lifecycles with ids! maybe in code on loading???
+(load "extensions")
 
+; todo redefine :add-props?

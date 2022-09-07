@@ -44,7 +44,7 @@
   `(s/and (s/nonconforming :cljfx/desc) (desc-of '~of)))
 (defmethod keyword-prop->spec-form :string [_] `(s/spec string?))
 (defmethod keyword-prop->spec-form :coll [{:keys [item]}]
-  `(s/coll-of ~(prop->spec-form item) :kind sequential?))
+  `(s/coll-of ~(prop->spec-form item)))
 (s/def :cljfx.image/url string?)
 (s/def :cljfx.image/is (instance-of InputStream))
 (s/def :cljfx.image/requested-width number?)
