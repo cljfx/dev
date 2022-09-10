@@ -298,11 +298,21 @@
 (defn- remove-keys [ks]
   (fn [m]
     (apply dissoc m ks)))
+
 (s/def :fx/key any?)
+
+(defn- keys-satisfy [m]
+  (fn [x]
+    (and (map? x)
+         (every? (fn [[k spec]]
+                   (let [v (get x k ::not-found)]
+                     (or (identical? ::not-found v)
+                         (s/valid? spec v))))
+                 m))))
 (defmethod keyword-prop->spec-form :add-props [{:keys [props to]}]
   `(s/and
-     (s/keys :opt ~props)
-     (s/conformer (remove-keys ~props))
+     (keys-satisfy ~(into {} (map (juxt key (comp prop->spec-form val))) props))
+     (s/conformer (remove-keys ~(vec (keys props))))
      ~(prop->spec-form to)))
 
 (register-props! :node
@@ -381,7 +391,7 @@
     :style-class {:type :style-class}
     :transforms {:type :coll
                  :item {:type :add-props
-                        :props [:fx/key]
+                        :props {:fx/key {:type :any}}
                         :to {:type :desc :of javafx.scene.transform.Transform}}}
     :translate-x {:type :number}
     :translate-y {:type :number}
@@ -498,7 +508,7 @@
   :parent :control
   :props '{:panes {:type :coll
                    :item {:type :add-props
-                          :props [:fx/key]
+                          :props {:fx/key {:type :any}}
                           :to {:type :desc :of javafx.scene.control.TitledPane}}}}
   :of 'javafx.scene.control.Accordion)
 
@@ -577,7 +587,7 @@
   :parent :region
   :props '{:children {:type :coll
                       :item {:type :add-props
-                             :props [:fx/key]
+                             :props {:fx/key {:type :any}}
                              :to {:type :desc :of javafx.scene.Node}}}}
   :of 'javafx.scene.layout.Pane)
 
@@ -589,11 +599,11 @@
   :parent :pane
   :props '{:children {:type :coll
                       :item {:type :add-props
-                             :props [:fx/key
-                                     :anchor-pane/top
-                                     :anchor-pane/left
-                                     :anchor-pane/bottom
-                                     :anchor-pane/right]
+                             :props {:fx/key {:type :any}
+                                     :anchor-pane/top {:type :number}
+                                     :anchor-pane/left {:type :number}
+                                     :anchor-pane/bottom {:type :number}
+                                     :anchor-pane/right {:type :number}}
                              :to {:type :desc :of javafx.scene.Node}}}}
   :of 'javafx.scene.layout.AnchorPane)
 
@@ -669,7 +679,7 @@
     :alternative-row-fill-visible {:type :boolean}
     :data {:type :coll
            :item {:type :add-props
-                  :props [:fx/key]
+                  :props {:fx/key {:type :any}}
                   :to {:type :desc :of javafx.scene.chart.XYChart$Series}}}
     :horizontal-grid-lines-visible {:type :boolean}
     :horizontal-zero-line-visible {:type :boolean}
@@ -733,19 +743,24 @@
 (register-composite! :border-pane
   :parent :pane
   :props '{:bottom {:type :add-props
-                    :props [:border-pane/alignment :border-pane/margin]
+                    :props {:border-pane/alignment {:type :enum :of javafx.geometry.Pos}
+                            :border-pane/margin {:type :insets}}
                     :to {:type :desc :of javafx.scene.Node}}
            :center {:type :add-props
-                    :props [:border-pane/alignment :border-pane/margin]
+                    :props {:border-pane/alignment {:type :enum :of javafx.geometry.Pos}
+                            :border-pane/margin {:type :insets}}
                     :to {:type :desc :of javafx.scene.Node}}
            :left {:type :add-props
-                  :props [:border-pane/alignment :border-pane/margin]
+                  :props {:border-pane/alignment {:type :enum :of javafx.geometry.Pos}
+                          :border-pane/margin {:type :insets}}
                   :to {:type :desc :of javafx.scene.Node}}
            :right {:type :add-props
-                   :props [:border-pane/alignment :border-pane/margin]
+                   :props {:border-pane/alignment {:type :enum :of javafx.geometry.Pos}
+                           :border-pane/margin {:type :insets}}
                    :to {:type :desc :of javafx.scene.Node}}
            :top {:type :add-props
-                 :props [:border-pane/alignment :border-pane/margin]
+                 :props {:border-pane/alignment {:type :enum :of javafx.geometry.Pos}
+                         :border-pane/margin {:type :insets}}
                  :to {:type :desc :of javafx.scene.Node}}}
   :of 'javafx.scene.layout.BorderPane)
 (register-props! :shape3d :node
@@ -797,7 +812,8 @@
            :button-order {:type :string}
            :buttons {:type :coll
                      :item {:type :add-props
-                            :props [:fx/key :button-bar/button-data]
+                            :props {:fx/key {:type :any}
+                                    :button-bar/button-data {:type :enum :of javafx.scene.control.ButtonBar$ButtonData}}
                             :to {:type :desc :of javafx.scene.Node}}}}
   :of 'javafx.scene.control.ButtonBar)
 (register-props! :camera
@@ -1003,7 +1019,7 @@
   :parent :popup-control
   :props '{:items {:type :coll
                    :item {:type :add-props
-                          :props [:fx/key]
+                          :props {:fx/key {:type :any}}
                           :to {:type :desc :of javafx.scene.control.MenuItem}}}
            :on-action {:type :event-handler :of javafx.event.EventHandler}}
   :of 'javafx.scene.control.ContextMenu)
@@ -1166,7 +1182,8 @@
   :props '{:alignment {:type :enum :of javafx.geometry.Pos}
            :children {:type :coll
                       :item {:type :add-props
-                             :props [:fx/key :flow-pane/margin]
+                             :props {:fx/key {:type :any}
+                                     :flow-pane/margin {:type :insets}}
                              :to {:type :desc :of javafx.scene.Node}}}
            :column-halignment {:type :enum :of javafx.geometry.HPos}
            :hgap {:type :number}
@@ -1198,36 +1215,36 @@
 (s/def :grid-pane/row-span int?)
 (defenumspec :grid-pane/valignment javafx.geometry.VPos)
 (s/def :grid-pane/vgrow :cljfx/priority)
-
+(defmethod keyword-prop->spec-form :int [_] `(s/spec int?))
 (register-composite! :grid-pane
   :parent :pane
   :props '{:alignment {:type :enum
                        :of javafx.geometry.Pos}
            :children {:type :coll
                       :item {:type :add-props
-                             :props [:fx/key
-                                     :grid-pane/column
-                                     :grid-pane/column-span
-                                     :grid-pane/fill-height
-                                     :grid-pane/fill-width
-                                     :grid-pane/halignment
-                                     :grid-pane/hgrow
-                                     :grid-pane/margin
-                                     :grid-pane/row
-                                     :grid-pane/row-span
-                                     :grid-pane/valignment
-                                     :grid-pane/vgrow]
+                             :props {:fx/key {:type :any}
+                                     :grid-pane/column {:type :int}
+                                     :grid-pane/column-span {:type :int}
+                                     :grid-pane/fill-height {:type :boolean}
+                                     :grid-pane/fill-width {:type :boolean}
+                                     :grid-pane/halignment {:type :enum :of javafx.geometry.HPos}
+                                     :grid-pane/hgrow {:type :enum :of javafx.scene.layout.Priority}
+                                     :grid-pane/margin {:type :insets}
+                                     :grid-pane/row {:type :int}
+                                     :grid-pane/row-span {:type :int}
+                                     :grid-pane/valignment {:type :enum :of javafx.geometry.VPos}
+                                     :grid-pane/vgrow {:type :enum :of javafx.scene.layout.Priority}}
                              :to {:type :desc :of javafx.scene.Node}}}
            :column-constraints {:type :coll
                                 :item {:type :add-props
-                                       :props [:fx/key]
+                                       :props {:fx/key {:type :any}}
                                        :to {:type :desc
                                             :of javafx.scene.layout.ColumnConstraints}}}
            :grid-lines-visible {:type :boolean}
            :hgap {:type :number}
            :row-constraints {:type :coll
                              :item {:type :add-props
-                                    :props [:fx/key]
+                                    :props {:fx/key {:type :any}}
                                     :to {:type :desc
                                          :of javafx.scene.layout.RowConstraints}}}
            :vgap {:type :number}}
@@ -1238,7 +1255,7 @@
   :props '{:auto-size-children {:type :boolean}
            :children {:type :coll
                       :item {:type :add-props
-                             :props [:fx/key]
+                             :props {:fx/key {:type :any}}
                              :to {:type :desc
                                   :of javafx.scene.Node}}}}
   :of 'javafx.scene.Group)
@@ -1251,9 +1268,9 @@
   :props '{:alignment {:type :enum :of javafx.geometry.Pos}
            :children {:type :coll
                       :item {:type :add-props
-                             :props [:fx/key
-                                     :h-box/margin
-                                     :h-box/hgrow]
+                             :props {:fx/key {:type :any}
+                                     :h-box/margin {:type :insets}
+                                     :h-box/hgrow {:type :enum :of javafx.scene.layout.Priority}}
                              :to {:type :desc :of javafx.scene.Node}}}
            :fill-height {:type :boolean}
            :spacing {:type :number}}
@@ -1461,7 +1478,7 @@
   :parent :menu-item
   :props '{:items {:type :coll
                    :item {:type :add-props
-                          :props [:fx/key]
+                          :props {:fx/key {:type :any}}
                           :to {:type :desc :of javafx.scene.control.MenuItem}}}
            :on-hidden {:type :event-handler :of javafx.event.EventHandler}
            :on-hiding {:type :event-handler :of javafx.event.EventHandler}
@@ -1473,7 +1490,7 @@
   :parent :control
   :props '{:menus {:type :coll
                    :item {:type :add-props
-                          :props [:fx/key]
+                          :props {:fx/key {:type :any}}
                           :to {:type :desc :of javafx.scene.control.Menu}}}
            :use-system-menu-bar {:type :boolean}}
   :of 'javafx.scene.control.MenuBar)
@@ -1486,7 +1503,7 @@
            :on-shown {:type :event-handler :of javafx.event.EventHandler}
            :items {:type :coll
                    :item {:type :add-props
-                          :props [:fx/key]
+                          :props {:fx/key {:type :any}}
                           :to {:type :desc :of javafx.scene.control.MenuItem}}}
            :popup-side {:type :enum :of javafx.geometry.Side}}
   :of 'javafx.scene.control.MenuButton)
@@ -1544,7 +1561,7 @@
   :parent :transition
   :props '{:children {:type :coll
                       :item {:type :add-props
-                             :props [:fx/key]
+                             :props {:fx/key {:type :any}}
                              :to {:type :desc :of javafx.animation.Animation}}}
            :node {:type :desc :of javafx.scene.Node}}
   :of 'javafx.animation.ParallelTransition)
@@ -1577,7 +1594,7 @@
   :parent :shape
   :props '{:elements {:type :coll
                       :item {:type :add-props
-                             :props [:fx/key]
+                             :props {:fx/key {:type :any}}
                              :to {:type :desc :of javafx.scene.shape.PathElement}}}
            :fill {:type :paint}
            :fill-rule {:type :enum :of javafx.scene.shape.FillRule}
@@ -1630,7 +1647,7 @@
   :props '{:clockwise {:type :boolean}
            :data {:type :coll
                   :item {:type :add-props
-                         :props [:fx/key]
+                         :props {:fx/key {:type :any}}
                          :to {:type :desc :of javafx.scene.chart.PieChart$Data}}}
            :label-line-length {:type :number}
            :labels-visible {:type :boolean}
@@ -1664,7 +1681,7 @@
   :parent :popup-window
   :props '{:content {:type :coll
                      :item {:type :add-props
-                            :props [:fx/key]
+                            :props {:fx/key {:type :any}}
                             :to {:type :desc :of javafx.scene.Node}}}}
   :of 'javafx.stage.Popup)
 
@@ -1918,7 +1935,7 @@
   :parent :transition
   :props '{:children {:type :coll
                       :item {:type :add-props
-                             :props [:fx/key]
+                             :props {:fx/key {:type :any}}
                              :to {:type :desc :of javafx.animation.Animation}}}
            :node {:type :desc :of javafx.scene.Node}}
   :of 'javafx.animation.SequentialTransition)
@@ -1985,7 +2002,8 @@
   :parent :control
   :props '{:divider-positions {:type :coll :item {:type :number}}
            :items {:type :coll :item {:type :add-props
-                                      :props [:fx/key :split-pane/resizable-with-parent]
+                                      :props {:fx/key {:type :any}
+                                              :split-pane/resizable-with-parent {:type :boolean}}
                                       :to {:type :desc :of javafx.scene.Node}}}
            :orientation {:type :enum :of javafx.geometry.Orientation}}
   :of 'javafx.scene.control.SplitPane)
@@ -1999,7 +2017,9 @@
                        :of javafx.geometry.Pos}
            :children {:type :coll
                       :item {:type :add-props
-                             :props [:fx/key :stack-pane/alignment :stack-pane/margin]
+                             :props {:fx/key {:type :any}
+                                     :stack-pane/alignment {:type :enum :of javafx.geometry.Pos}
+                                     :stack-pane/margin {:type :insets}}
                              :to {:type :desc :of javafx.scene.Node}}}}
   :of 'javafx.scene.layout.StackPane)
 
@@ -2070,7 +2090,7 @@
           :tab-min-width {:type :number}
           :tabs {:type :coll
                  :item {:type :add-props
-                        :props [:fx/key]
+                        :props {:fx/key {:type :any}}
                         :to {:type :desc :of javafx.scene.control.Tab}}}}
  :of 'javafx.scene.control.TabPane)
 
@@ -2082,7 +2102,7 @@
 (register-props! :table-column-base
   '{:columns {:type :coll
               :item {:type :add-props
-                     :props [:fx/key]
+                     :props {:fx/key {:type :any}}
                      :to {:type :desc :of javafx.scene.control.TableColumnBase}}}
     :comparator {:type java.util.Comparator}
     :context-menu {:type :desc :of javafx.scene.control.ContextMenu}
@@ -2112,7 +2132,7 @@
            :cell-value-factory {:type :cell-value-factory}
            :columns {:type :coll
                      :item {:type :add-props
-                            :props [:fx/key]
+                            :props {:fx/key {:type :any}}
                             :to {:type :desc :of javafx.scene.control.TableColumn}}}
            :on-edit-cancel {:type :event-handler :of javafx.event.EventHandler}
            :on-edit-commit {:type :event-handler :of javafx.event.EventHandler}
@@ -2141,7 +2161,7 @@
   :props '{:column-resize-policy {:type :column-resize-policy}
            :columns {:type :coll
                      :item {:type :add-props
-                            :props [:fx/key]
+                            :props {:fx/key {:type :any}}
                             :to {:type :desc :of javafx.scene.control.TableColumn}}}
            :editable {:type :boolean}
            :fixed-cell-size {:type :number}
@@ -2155,7 +2175,7 @@
            :selection-mode {:type :enum :of javafx.scene.control.SelectionMode}
            :sort-order {:type :coll
                         :item {:type :add-props
-                               :props [:fx/key]
+                               :props {:fx/key {:type :any}}
                                :to {:type :desc
                                     :of javafx.scene.control.TableColumn}}}
            :sort-policy {:type :table-sort-policy}
@@ -2233,7 +2253,9 @@
  :props '{:alignment {:type :enum :of javafx.geometry.Pos}
           :children {:type :coll
                      :item {:type :add-props
-                            :props [:fx/key :tile-pane/margin :tile-pane/alignment]
+                            :props {:fx/key {:type :any}
+                                    :tile-pane/margin {:type :insets}
+                                    :tile-pane/alignment {:type :enum :of javafx.geometry.Pos}}
                             :to {:type :desc :of javafx.scene.Node}}}
           :hgap {:type :number}
           :orientation {:type :enum :of javafx.geometry.Orientation}
@@ -2256,7 +2278,7 @@
 (register-composite! :toggle-group
   :props '{:toggles {:type :coll
                      :item {:type :add-props
-                            :props [:fx/key]
+                            :props {:fx/key {:type :any}}
                             :to {:type :desc :of javafx.scene.control.Toggle}}}
            :user-data {:type :any}}
   :of 'javafx.scene.control.ToggleGroup)
@@ -2265,7 +2287,7 @@
   :parent :control
   :props '{:items {:type :coll
                    :item {:type :add-props
-                          :props [:fx/key]
+                          :props {:fx/key {:type :any}}
                           :to {:type :desc :of javafx.scene.Node}}}
            :orientation {:type :enum :of javafx.geometry.Orientation}}
   :of 'javafx.scene.control.ToolBar)
@@ -2316,7 +2338,7 @@
 (register-composite! :tree-item
   :props '{:children {:type :coll
                       :item {:type :add-props
-                             :props [:fx/key]
+                             :props {:fx/key {:type :any}}
                              :to {:type :desc :of javafx.scene.control.TreeItem}}}
            :expanded {:type :boolean}
            :graphic {:type :desc :of javafx.scene.Node}
@@ -2336,7 +2358,7 @@
            :cell-value-factory {:type :cell-value-factory}
            :columns {:type :coll
                      :item {:type :add-props
-                            :props [:fx/key]
+                            :props {:fx/key {:type :any}}
                             :to {:type :desc :of javafx.scene.control.TreeTableColumn}}}
            :on-edit-cancel {:type :event-handler :of javafx.event.EventHandler}
            :on-edit-commit {:type :event-handler :of javafx.event.EventHandler}
@@ -2354,7 +2376,7 @@
   :props '{:column-resize-policy {:type :column-resize-policy}
            :columns {:type :coll
                      :item {:type :add-props
-                            :props [:fx/key]
+                            :props {:fx/key {:type :any}}
                             :to {:type :desc :of javafx.scene.control.TreeTableColumn}}}
            :editable {:type :boolean}
            :fixed-cell-size {:type :number}
@@ -2370,7 +2392,7 @@
            :sort-mode {:type :enum :of javafx.scene.control.TreeSortMode}
            :sort-order {:type :coll
                         :item {:type :add-props
-                               :props [:fx/key]
+                               :props {:fx/key {:type :any}}
                                :to {:type :desc :of javafx.scene.control.TreeTableColumn}}}
            :sort-policy {:type :table-sort-policy}
            :table-menu-button-visible {:type :boolean}
@@ -2412,7 +2434,9 @@
  :parent :pane
  :props '{:alignment {:type :enum :of javafx.geometry.Pos}
           :children {:type :coll :item {:type :add-props
-                                        :props [:fx/key :v-box/margin :v-box/vgrow]
+                                        :props {:fx/key {:type :any}
+                                                :v-box/margin {:type :insets}
+                                                :v-box/vgrow {:type :enum :of javafx.scene.layout.Priority}}
                                         :to {:type :desc :of javafx.scene.Node}}}
           :fill-width {:type :boolean}
           :spacing {:type :number}}
@@ -2448,7 +2472,7 @@
 (register-composite! :xy-chart-series
   :props '{:data {:type :coll
                   :item {:type :add-props
-                         :props [:fx/key]
+                         :props {:fx/key {:type :any}}
                          :to {:type :desc :of javafx.scene.chart.XYChart$Data}}}
            :name {:type :string}
            :node {:type :desc :of javafx.scene.Node}}
@@ -2607,7 +2631,7 @@
                                        #{'[:list lifecycle/dynamics]}
                                        {:type :coll
                                         :item {:type :add-props
-                                               :props [:fx/key]
+                                               :props {:fx/key {:type :any}}
                                                :to {:type :desc :of (resolve-class k)}}}
 
                                        {:type '??? :form v})]

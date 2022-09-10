@@ -147,12 +147,11 @@
                 (only-keys ~ks))))))
 
 (defn register-composite! [id & {:keys [parent props of req]}]
-  {:pre [(symbol? of)]}
+  {:pre [(symbol? of)
+         (every? simple-keyword? (keys props))]}
   (register-props! id parent props)
   (register-type! id :spec (make-composite-spec id :req req) :of of))
 
 (load "definitions")
 
 (load "extensions")
-
-; todo redefine :add-props?
