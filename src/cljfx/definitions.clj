@@ -315,6 +315,8 @@
      (s/conformer (remove-keys ~(vec (keys props))))
      ~(prop->spec-form to)))
 
+(defmethod keyword-prop->spec-form :any [_] `(s/spec any?))
+
 (register-props! :node
   '{:view-order {:type :number}
     :accessible-help {:type :string}
@@ -437,7 +439,6 @@
            :snap-to-pixel {:type :boolean}}
   :of 'javafx.scene.layout.Region)
 
-(defmethod keyword-prop->spec-form :any [_] `(s/spec any?))
 (register-props! :window
   '{:force-integer-render-scale {:type :boolean}
     :render-scale-x {:type :number}
