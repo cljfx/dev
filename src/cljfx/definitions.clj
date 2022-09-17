@@ -18,7 +18,7 @@
   '[javafx.scene.input KeyCombination KeyCode]
   '[javafx.scene.effect FloatMap]
   '[javafx.scene.shape VertexFormat]
-  '[javafx.geometry Insets Point3D Side BoundingBox]
+  '[javafx.geometry Insets Point3D Side BoundingBox Rectangle2D]
   '[javafx.scene Cursor])
 
 (defmethod keyword-prop->spec-form :pref-or-computed-size-double [_]
@@ -970,7 +970,7 @@
 (register-composite! :combo-box
   :parent :combo-box-base
   :props '{:button-cell {:type :ifn}
-           :cell-factory {:type :cell-factory}
+           :cell-factory {:type :cell-factory :of javafx.scene.control.ListCell}
            :converter {:type :string-converter}
            :items {:type :coll :item {:type :any}}
            :placeholder {:type :desc :of javafx.scene.Node}
@@ -1072,7 +1072,7 @@
   :parent :combo-box-base
   :props '{:chronology {:type :chronology}
            :converter {:type :string-converter}
-           :day-cell-factory {:type :cell-factory}
+           :day-cell-factory {:type :cell-factory :of javafx.scene.control.DateCell}
            :show-week-numbers {:type :boolean}}
   :of 'javafx.scene.control.DatePicker)
 
@@ -1307,7 +1307,8 @@
   `(s/or :map (s/keys :req-un [:cljfx.rectangle/min-x
                                :cljfx.rectangle/min-y
                                :cljfx.rectangle/width
-                               :cljfx.rectangle/height])))
+                               :cljfx.rectangle/height])
+         :instance (instance-of Rectangle2D)))
 
 (register-composite! :image-view
   :parent :node
@@ -1411,7 +1412,7 @@
 
 (register-composite! :list-view
   :parent :control
-  :props '{:cell-factory {:type :cell-factory}
+  :props '{:cell-factory {:type :cell-factory :of javafx.scene.control.ListCell}
            :editable {:type :boolean}
            :fixed-cell-size {:type :number}
            :items {:type :coll :item {:type :any}}
@@ -2125,11 +2126,11 @@
 
 (defmethod keyword-prop->spec-form :cell-value-factory [_]
   `(s/or :fn ifn?
-         :instance Callback))
+         :instance (instance-of Callback)))
 
 (register-composite! :table-column
   :parent :table-column-base
-  :props '{:cell-factory {:type :cell-factory}
+  :props '{:cell-factory {:type :cell-factory :of javafx.scene.control.TableCell}
            :cell-value-factory {:type :cell-value-factory}
            :columns {:type :coll
                      :item {:type :add-props
@@ -2172,7 +2173,7 @@
            :on-selected-item-changed {:type :event-handler :of javafx.beans.value.ChangeListener}
            :on-sort {:type :event-handler :of javafx.event.EventHandler}
            :placeholder {:type :desc :of javafx.scene.Node}
-           :row-factory {:type :cell-factory}
+           :row-factory {:type :cell-factory :of javafx.scene.control.TableRow}
            :selection-mode {:type :enum :of javafx.scene.control.SelectionMode}
            :sort-order {:type :coll
                         :item {:type :add-props
@@ -2355,7 +2356,7 @@
 
 (register-composite! :tree-table-column
   :parent :table-column-base
-  :props '{:cell-factory {:type :cell-factory}
+  :props '{:cell-factory {:type :cell-factory :of javafx.scene.control.TreeTableCell}
            :cell-value-factory {:type :cell-value-factory}
            :columns {:type :coll
                      :item {:type :add-props
@@ -2387,7 +2388,7 @@
            :on-sort {:type :event-handler :of javafx.event.EventHandler}
            :placeholder {:type :desc :of javafx.scene.Node}
            :root {:type :desc :of javafx.scene.control.TreeItem}
-           :row-factory {:type :cell-factory}
+           :row-factory {:type :cell-factory :of javafx.scene.control.TreeTableRow}
            :selection-mode {:type :enum :of javafx.scene.control.SelectionMode}
            :show-root {:type :boolean}
            :sort-mode {:type :enum :of javafx.scene.control.TreeSortMode}
@@ -2402,7 +2403,7 @@
 
 (register-composite! :tree-view
   :parent :control
-  :props '{:cell-factory {:type :cell-factory}
+  :props '{:cell-factory {:type :cell-factory :of javafx.scene.control.TreeCell}
            :editable {:type :boolean}
            :fixed-cell-size {:type :number}
            :on-edit-cancel {:type :event-handler :of javafx.event.EventHandler}

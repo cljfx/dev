@@ -158,105 +158,22 @@
 (load "extensions")
 
 (defmulti short-keyword-prop-help-string :type)
+(defmethod short-keyword-prop-help-string :default [{:keys [type]}]
+  (name type))
 (defn- short-prop-help-string [{:keys [type] :as prop-desc}]
   (if (symbol? type)
     (str "instance of " type)
     (short-keyword-prop-help-string prop-desc)))
-(defmethod short-keyword-prop-help-string :default [{:keys [type]}]
-  (name type))
-(defmethod short-keyword-prop-help-string :desc [{:keys [of]}]
-  (str "cljfx desc of " of))
-(defmethod short-keyword-prop-help-string :enum [{:keys [of]}]
-  (let [options (into (sorted-set)
-                      (map #(keyword (str/replace (str/lower-case (.name ^Enum %)) #"_" "-")))
-                      (.getEnumConstants (resolve of)))]
-    (str "either of: " (str/join ", " options))))
 
-(defmethod short-keyword-prop-help-string :coll [{:keys [item]}]
-  (str "coll of " (short-keyword-prop-help-string item)))
-
-(defmethod short-keyword-prop-help-string :add-props [{:keys [to props]}]
-  (str (short-keyword-prop-help-string to) " with extra props (" (str/join  ", "(sort (keys props))) ")"))
-
-(defmethod short-keyword-prop-help-string :pref-or-computed-size-double [_]
-  (str "number, :use-computed-size or :use-pref-size"))
-(defmethod short-keyword-prop-help-string :computed-size-double [_]
-  (str "number or :use-computed-size"))
-(defmethod short-keyword-prop-help-string :animation [_]
-  (str "number or :indefinite"))
-(defmethod short-keyword-prop-help-string :animation-status [_]
-  "either of: :running, :paused, :stopped")
-(defmethod short-keyword-prop-help-string :map [{:keys [key value]}]
-  (str "map from " (short-keyword-prop-help-string key) " to " (short-keyword-prop-help-string value)))
-(defmethod short-keyword-prop-help-string :media-player-state [_]
-  "either of: :playing, :paused, :stopped")
-
-(defmulti long-keyword-prop-help-string :type)
-(defmethod long-keyword-prop-help-string :default [prop]
+(defmulti long-keyword-prop-help-syntax :type)
+(defmethod long-keyword-prop-help-syntax :default [prop]
   (short-keyword-prop-help-string prop))
-(defn long-prop-help-string [{:keys [type] :as prop}]
+(defn long-prop-help-syntax [{:keys [type] :as prop}]
   (if (symbol? type)
     (str "Instance of:\n" type)
-    (long-keyword-prop-help-string prop)))
-(defmethod long-keyword-prop-help-string :enum [{:keys [of]}]
-  (let [consts (.getEnumConstants (resolve of))]
-    (str "Enum:\n"
-         of
-         "\n\nIdiomatic values:\n- "
-         (->> consts
-              (map #(keyword (str/replace (str/lower-case (.name ^Enum %)) #"_" "-")))
-              (into (sorted-set))
-              (str/join "\n- "))
-         "\n\nAlso works:\n- "
-         (->> consts
-              (map #(str of "/" (.name ^Enum %)))
-              sort
-              (str/join "\n- ")))))
-(defmethod long-keyword-prop-help-string :insets [_]
-  "Insets, either:
-- number
-- map with optional keys - :top, :bottom, :left, :right - numbers
-- literal - :empty
-- instance of javafx.geometry.Insets")
-(defmethod long-keyword-prop-help-string :image [_]
-  "Image, either:
-- instance of javafx.scene.image.Image
-- string: either a resource path or URL string pointing to image
-- map with required :url (url string) or :is (input stream) keys and optional :requested-width (number), :requested-height (number), :preserve-ratio (boolean), :smooth (boolean) and :background-loading (boolean) keys")
-(defmethod long-keyword-prop-help-string :duration [_]
-  "Duration, either:
-- tuple of number and time unit (:ms, :s, :m, or :h), e.g. [10 :s]
-- string in the format [number][ms|s|m|h], e.g. 10s
-- number (ms)
-- literal - :zero, :one (ms), :indefinite or :unknown
-- instance of javafx.util.Duration")
-(defmethod long-keyword-prop-help-string :font [_]
-  "Font, either:
-- string, font family name
-- number, font size (of a default font)
-- literal - :default
-- map with required :family key (string) and optional :weight, :posture and :size (number) keys
-- instance of javafx.scene.text.Font")
+    (long-keyword-prop-help-syntax prop)))
 
-(comment
-  (sort
-    (clojure.set/difference
-      (set (keys (.getMethodTable ^clojure.lang.MultiFn keyword-prop->spec-form)))
-      (into #{:int :ifn :any :string :boolean}
-            (keys (.getMethodTable ^clojure.lang.MultiFn long-keyword-prop-help-string))))))
-
-(defn- print-table [items & columns]
-  (let [columns (vec columns)
-        column-strs (mapv #(into [(:label %)] (map (comp str (:fn %))) items) columns)
-        max-lengths (mapv #(transduce (map count) max 0 %) column-strs)]
-    (dotimes [i (inc (count items))]
-      (let [row (mapv #(% i) column-strs)]
-        (println
-          (str/join
-            "    "
-            (map (fn [max-length item]
-                   (str item (str/join (repeat (- max-length (count item)) \space))))
-                 max-lengths row)))))))
+(load "help")
 
 (defn help
   ([fx-type]
@@ -265,8 +182,11 @@
      (let [r @registry
            props (get-in r [:props fx-type])
            type (get-in r [:types fx-type])]
+       (println "Cljfx type:")
+       (println fx-type)
+       (println)
        (when (symbol? (:of type))
-         (println "Class:")
+         (println "Instance class:")
          (println (:of type))
          (println))
        (when (:req type)
@@ -278,10 +198,11 @@
                (println (str/join ", " (sort (:req type))))))
          (println))
        (when props
-         (print-table
-           (sort (keys props))
-           {:label "Props" :fn identity}
-           {:label "Value type" :fn #(-> % props short-prop-help-string)}))
+         (println
+           (str-table
+             (sort (keys props))
+             {:label "Props" :fn identity}
+             {:label "Value type" :fn #(-> % props short-prop-help-string)})))
        (when (and (not props) (:spec type))
          (println "Spec:")
          (println (s/form (:spec type))))
@@ -289,24 +210,17 @@
          (println '???)))
 
      (or (simple-symbol? fx-type) (class? fx-type))
-     (let [cls (if (symbol? fx-type) (resolve fx-type) fx-type)
-           r @registry
-           ts (->> r
-                   :types
-                   vals
-                   (filter (fn [{:keys [of]}]
-                             (and (symbol? of)
-                                  (isa? (resolve of) cls))))
-                   (sort-by (comp str :id)))]
+     (let [ts (known-types-of fx-type)]
        (println "Class:")
-       (println cls)
+       (println fx-type)
        (println)
        (when (seq ts)
-         (println "Known cljfx types:")
-         (print-table
-           ts
-           {:label "Cljfx type" :fn :id}
-           {:label "Class" :fn :of})))
+         (println "Fitting cljfx types:")
+         (println
+           (str-table
+             ts
+             {:label "Cljfx type" :fn :id}
+             {:label "Class" :fn :of}))))
 
      (*type->id* fx-type)
      (recur (*type->id* fx-type))
@@ -319,25 +233,17 @@
      (let [r @registry
            prop (get-in r [:props fx-type prop-kw])]
        (if prop
-         (println (long-prop-help-string prop))
+         (do
+           (println (str "Prop of " fx-type " - " prop-kw))
+           (println)
+           (println (convert-help-syntax-to-string (long-prop-help-syntax prop))))
          (println '???)))
 
      :else
      (println '???))))
 
-(comment
-
-  (help :image-view :image)
-  (help :grid-pane :children)
-  (help :grid-pane :node-orientation)
-  (help :grid-pane :accessible-role)
-
-  (help :text-formatter)
-  (help :labeled :font))
-
 ;; next steps:
 ;; 1. api for looking up type and prop information:
-;;    - extended prop description
 ;;    - generic help?
 ;; 2. dev cljfx type->lifecycle wrapper that validates and contextualizes errors
 ;;    in terms of a cljfx component hierarchy
