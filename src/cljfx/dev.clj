@@ -182,9 +182,10 @@
      (let [r @registry
            props (get-in r [:props fx-type])
            type (get-in r [:types fx-type])]
-       (println "Cljfx type:")
-       (println fx-type)
-       (println)
+       (when (or type props)
+         (println "Cljfx type:")
+         (println fx-type)
+         (println))
        (when (symbol? (:of type))
          (println "Instance class:")
          (println (:of type))
