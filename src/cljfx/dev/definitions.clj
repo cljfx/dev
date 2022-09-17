@@ -40,6 +40,19 @@
          :instance (instance-of ~of)))
 (defmethod keyword-prop->spec-form :enum [{:keys [of]}]
   (enum-sym->spec-form of))
+(defn- desc-of [c-sym]
+  (fn [desc]
+    (let [type (:fx/type desc)
+          id (*type->id* type)]
+      (if (nil? id)
+        true
+        (if-let [of (-> @registry :types id :of)]
+          (cond
+            (symbol? of) (isa? (resolve of) (resolve c-sym))
+            (keyword? of) (recur (get desc of))
+            :else (throw (ex-info (str "Unknown 'instance of' definition: " of)
+                                  {:of of})))
+          true)))))
 (defmethod keyword-prop->spec-form :desc [{:keys [of]}]
   `(s/and (s/nonconforming :cljfx/desc) (desc-of '~of)))
 (defmethod keyword-prop->spec-form :string [_] `(s/spec string?))

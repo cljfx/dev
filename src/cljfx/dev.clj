@@ -108,21 +108,8 @@
   (fn [x]
     (instance? c x)))
 
-(defn- desc-of [c-sym]
-  (fn [desc]
-    (let [type (:fx/type desc)
-          id (*type->id* type)]
-      (if (nil? id)
-        true
-        (if-let [of (-> @registry :types id :of)]
-          (cond
-            (symbol? of) (isa? (resolve of) (resolve c-sym))
-            (keyword? of) (recur (get desc of))
-            :else (throw (ex-info (str "Unknown 'instance of' definition: " of)
-                                  {:of of})))
-          true)))))
-
 (defmulti keyword-prop->spec-form :type)
+
 (defn prop->spec-form [prop]
   (let [{:keys [type]} prop]
     (if (symbol? type)
@@ -153,9 +140,9 @@
   (apply register-type! id :spec (make-composite-spec id :req req) :of of (when req
                                                                             [:req req])))
 
-(load "definitions")
+(load "dev/definitions")
 
-(load "extensions")
+(load "dev/extensions")
 
 (defmulti short-keyword-prop-help-string :type)
 (defmethod short-keyword-prop-help-string :default [{:keys [type]}]
@@ -173,9 +160,18 @@
     (str "Instance of:\n" type)
     (long-keyword-prop-help-syntax prop)))
 
-(load "help")
+(load "dev/help")
 
 (defn help
+  ([]
+   (let [ts (->> @registry :types)]
+    (println "Available cljfx types:")
+    (println
+      (str-table
+        (->> ts keys (sort-by str))
+        {:label "Cljfx type" :fn identity}
+        {:label "Instance class" :fn #(let [of (:of (get ts %))]
+                                        (if (symbol? of) (str of) ""))}))))
   ([fx-type]
    (cond
      (or (keyword? fx-type) (qualified-symbol? fx-type))
@@ -244,10 +240,10 @@
      (println '???))))
 
 ;; next steps:
-;; 1. api for looking up type and prop information:
-;;    - generic help?
-;; 2. dev cljfx type->lifecycle wrapper that validates and contextualizes errors
+;; 1. dev cljfx type->lifecycle wrapper that validates and contextualizes errors
 ;;    in terms of a cljfx component hierarchy
+;; 2. documentation
+;; 3. release on clojars
 ;; stretch goals
 ;; 3. ui reference for searching the props/types/etc
 ;; 4. dev cljfx type->lifecycle wrapper that adds inspector capabilities.
