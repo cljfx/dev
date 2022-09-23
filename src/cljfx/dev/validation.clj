@@ -86,5 +86,4 @@
               opts (assoc opts ::stack stack)]
           (try
             (lifecycle/delete lifecycle component opts)
-            (catch Exception ex (re-throw-with-stack ex stack))))
-        (lifecycle/delete lifecycle component opts)))))
+            (catch Exception ex (re-throw-with-stack ex stack))))))))

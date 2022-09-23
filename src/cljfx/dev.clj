@@ -241,8 +241,9 @@
 (load "dev/validation")
 
 (defn wrap-type->lifecycle [type->lifecycle]
-  (fn [type]
-    (wrap-lifecycle type type->lifecycle)))
+  (let [f (memoize wrap-lifecycle)]
+    (fn [type]
+      (f type type->lifecycle))))
 
 (def type->lifecycle
   (wrap-type->lifecycle (some-fn fx/keyword->lifecycle fx/fn->lifecycle)))
