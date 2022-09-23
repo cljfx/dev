@@ -1,7 +1,8 @@
 (ns cljfx.dev
   (:require [cljfx.lifecycle :as lifecycle]
             [cljfx.api :as fx]
-            [clojure.spec.alpha :as s]))
+            [clojure.spec.alpha :as s]
+            [clojure.set :as set]))
 
 (def ^:private registry
   ;; types is a map:
@@ -49,9 +50,9 @@
 (defmacro defdynaspec [name & fn-tail]
   (let [multi-name (symbol (str name "-multi-fn"))]
     `(do
-       (defmulti ~multi-name (constantly nil))
-       (defmethod ~multi-name nil ~@fn-tail)
-       (def ~name (s/multi-spec ~multi-name nil)))))
+       (defmulti ~multi-name (constantly :cljfx/desc))
+       (defmethod ~multi-name :cljfx/desc ~@fn-tail)
+       (def ~name (s/multi-spec ~multi-name :cljfx/desc)))))
 
 (defn- keyword-id-should-be-registered [_] false)
 (def ^:private keyword-id-should-be-registered-spec (s/spec keyword-id-should-be-registered))
@@ -202,7 +203,7 @@
              {:label "Value type" :fn #(-> % props short-prop-help-string)})))
        (when (and (not props) (:spec type))
          (println "Spec:")
-         (println (s/form (:spec type))))
+         (println (s/describe (:spec type))))
        (when (and (not type) (not props))
          (println '???)))
 
@@ -239,12 +240,20 @@
      :else
      (println '???))))
 
+(load "dev/validation")
+
+(defn wrap-type->lifecycle [type->lifecycle]
+  (fn [type]
+    (wrap-lifecycle type (type->lifecycle type))))
+
+(def type->lifecycle
+  (wrap-type->lifecycle (some-fn fx/keyword->lifecycle fx/fn->lifecycle)))
+
 ;; next steps:
-;; 1. dev cljfx type->lifecycle wrapper that validates and contextualizes errors
-;;    in terms of a cljfx component hierarchy
-;; 2. documentation
-;; 3. release on clojars
+;; - profile if validation is a bottleneck?
+;; - documentation
+;; - release on clojars
 ;; stretch goals
-;; 3. ui reference for searching the props/types/etc
-;; 4. dev cljfx type->lifecycle wrapper that adds inspector capabilities.
-;; 5. dev ui builder
+;; - ui reference for searching the props/types/etc
+;; - dev cljfx type->lifecycle wrapper that adds inspector capabilities.
+;; - dev ui builder
