@@ -39,11 +39,9 @@
 (def ^:dynamic *type->lifecycle*
   (some-fn fx/keyword->lifecycle fx/fn->lifecycle))
 
-(defn- type->lifecycle [x]
-  (or (*type->lifecycle* x) x))
-
 (defn- valid-fx-type? [m]
-  (let [lifecycle (type->lifecycle (:fx/type m))]
+  (let [type (:fx/type m)
+        lifecycle (or (*type->lifecycle* type) type)]
     (or (contains? (meta lifecycle) `lifecycle/create)
         (satisfies? lifecycle/Lifecycle lifecycle))))
 
@@ -244,7 +242,7 @@
 
 (defn wrap-type->lifecycle [type->lifecycle]
   (fn [type]
-    (wrap-lifecycle type (type->lifecycle type))))
+    (wrap-lifecycle type type->lifecycle)))
 
 (def type->lifecycle
   (wrap-type->lifecycle (some-fn fx/keyword->lifecycle fx/fn->lifecycle)))
