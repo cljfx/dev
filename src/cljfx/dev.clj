@@ -1,4 +1,30 @@
 (ns cljfx.dev
+  "Helpers for cljfx app development that shouldn't be included into production
+
+  You can get help for existing lifecycles and props by using help fn:
+
+    (cljfx.dev/help)
+    ;; prints information about all cljfx lifecycles including :label
+    (cljfx.dev/help :label)
+    ;; prints information about label and its props including :graphic
+    (cljfx.dev/help :label :graphic)
+    ;; prints information about :graphic prop of a label
+
+  You can also add cljfx component validation that greatly improves error
+  messages using cljfx.dev/type->lifecycle (or cljfx.dev/wrap-type->lifecycle):
+
+    (fx/create-component
+      {:fx/type :stage
+       :scene {:fx/type :scene
+               :root {:fx/type :label
+                      :text true}}}
+      {:fx.opt/type->lifecycle cljfx.dev/type->lifecycle})
+    ;; Execution error (ExceptionInfo) at cljfx.dev/ensure-valid-desc (validation.clj:62).
+    ;; Invalid cljfx description of :stage type:
+    ;; true - failed: string? in [:scene :root :text]
+    ;;
+    ;; Cljfx component stack:
+    ;;   :stage"
   (:require [cljfx.lifecycle :as lifecycle]
             [cljfx.api :as fx]
             [clojure.spec.alpha :as s]
@@ -72,9 +98,28 @@
   (s/and map? valid-fx-type? desc->spec))
 
 (defn register-props!
+  "Associate props description with some id
+
+  Args:
+    id        prop identifier, either keyword or symbol
+    parent    semantical parent id of the prop map, meaning props with the id
+              should also accept props with parent id
+    props     a map from keyword to prop description, which is a map with
+              a :type key that can be either:
+              - symbol of a class name
+              - keyword that defines a corresponding spec form by extending
+                keyword-prop->spec-form multi-method"
   ([id props]
    (register-props! id nil props))
   ([id parent props]
+   {:pre [(ident? id)
+          (or (nil? parent) (ident? parent))
+          (or (nil? props)
+              (and (map? props)
+                   (every? (fn [[k v]]
+                             (and (keyword? k)
+                                  (contains? v :type)))
+                           props)))]}
    (swap!
      registry
      (fn [registry]
@@ -94,8 +139,19 @@
                     (assoc id->props id props))))))
    id))
 
-(defn ^{:arglists '([id & {:keys [spec of]}])} register-type! [id & {:as opts}]
-  {:pre [(ident? id)]}
+(defn register-type!
+  "Associate cljfx type description with some id
+
+  Optional kv-args:
+    :spec    a spec to use when validating props of components with the id
+    :of      component instance class identifier, either:
+             - symbol of a class name, e.g. javafx.scene.Node
+             - keyword of a prop that hold another cljfx description that
+               defines component instance class, e.g. :desc"
+  [id & {:keys [spec of] :as opts}]
+  {:pre [(ident? id)
+         (or (nil? of)
+             (ident? of))]}
   (swap! registry update :types assoc id (assoc opts :id id))
   id)
 
@@ -109,7 +165,12 @@
 
 (defmulti keyword-prop->spec-form :type)
 
-(defn prop->spec-form [prop]
+(defn prop->spec-form
+  "Convert prop type config to spec form (i.e. clojure form that evals to spec)
+
+  You can extend prop type configs by adding more implementations to
+  keyword-prop->spec-form multimethod"
+  [prop]
   (let [{:keys [type]} prop]
     (if (symbol? type)
       `(instance-of ~type)
@@ -132,7 +193,24 @@
                   :opt-un ~(into [] (map k->spec-kw) (sort ks)))
                 (only-keys ~ks))))))
 
-(defn register-composite! [id & {:keys [parent props of req]}]
+(defn register-composite!
+  "Associate a composite lifecycle type description with some id
+
+  Required kv-args:
+    :of    symbol of a component instance class
+
+  Optional kv-args:
+    :parent    semantic parent id of a lifecycle, meaning lifecycle with the id
+               should also accept all props of parent id
+    :props     a map from keyword to prop description, which is a map with
+               a :type key that can be either:
+               - symbol of a class name
+               - keyword that defines a corresponding spec form by extending
+                 keyword-prop->spec-form multi-method
+    :req       required props on the component, either:
+               - a vector of prop keywords (all are required)
+               - a set of vectors of prop keywords (either vector is required)"
+  [id & {:keys [parent props of req]}]
   {:pre [(symbol? of)
          (every? simple-keyword? (keys props))]}
   (register-props! id parent props)
@@ -241,6 +319,18 @@
 (load "dev/validation")
 
 (defn wrap-type->lifecycle
+  "Wrap type->lifecycle used in the cljfx UI app with improved error messages
+
+  Wrapped lifecycle performs spec validation of cljfx descriptions that results
+  in better error messages shown when cljfx descriptions are invalid.
+
+  Additionally, exceptions thrown during cljfx lifecycle show a cljfx component
+  stack to help with debugging.
+
+  Args:
+    type->lifecycle    the type->lifecycle fn used in opts of your app
+    type->id           custom type->id if you need a way to get id from your
+                       custom lifecycles"
   ([type->lifecycle]
    (wrap-type->lifecycle type->lifecycle *type->id*))
   ([type->lifecycle type->id]
@@ -249,6 +339,8 @@
        (f type type->lifecycle type->id)))))
 
 (def type->lifecycle
+  "Default type->lifecycle that can be used in the cljfx UI app to improve error
+  messages"
   (wrap-type->lifecycle (some-fn fx/keyword->lifecycle fx/fn->lifecycle)))
 
 ;; next steps:
