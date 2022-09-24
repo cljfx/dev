@@ -1,1 +1,5 @@
-{:deps {cljfx/cljfx {:mvn/version "1.7.21"}}}
+{:deps {cljfx/cljfx {:mvn/version "1.7.22"}}
+ :aliases {;; clj -T:build deploy
+           :build {:deps {io.github.clojure/tools.build {:git/tag "v0.8.2" :git/sha "ba1a2bf"}
+                          clj-commons/pomegranate {:mvn/version "1.2.0"}}
+                   :ns-default build}}}
