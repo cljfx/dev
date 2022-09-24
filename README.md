@@ -1,3 +1,5 @@
+[![Clojars Project](https://img.shields.io/clojars/v/io.github.cljfx/dev.svg)](https://clojars.org/io.github.cljfx/dev)
+
 # Cljfx dev tools
 
 Cljfx is a declarative, functional and extensible wrapper of JavaFX inspired by better parts of react and re-frame. Cljfx dev tools are a set of tools that can help with developing cljfx applications that should not be included into production distribution of the cljfx app.
@@ -5,8 +7,6 @@ Cljfx is a declarative, functional and extensible wrapper of JavaFX inspired by 
 ## Installation
 
 See latest version in Clojars 
-
-[//]: # (TODO: deploy to Clojars)
 
 ## Requirements
 
