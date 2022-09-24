@@ -11,7 +11,7 @@
                 :req-un [:cljfx/desc])
   :of :desc)
 
-(s/def :cljfx.ext-let-refs/refs (s/map-of any? :cljfx/desc))
+(s/def :cljfx.ext-let-refs/refs (s/nilable (s/map-of any? :cljfx/desc)))
 
 (register-type! `fx/ext-let-refs
   :spec (s/keys :req-un [:cljfx/desc :cljfx.ext-let-refs/refs])

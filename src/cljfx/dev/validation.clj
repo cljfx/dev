@@ -1,9 +1,7 @@
 (in-ns 'cljfx.dev)
 
 (defn- type->string [fx-type]
-  (if (fn? fx-type)
-    (-> fx-type class .getName Compiler/demunge)
-    fx-type))
+  (str (or (*type->id* fx-type) fx-type)))
 
 (defn- re-throw-with-stack [^Throwable ex stack]
   (if (::cause (ex-data ex))
@@ -57,28 +55,29 @@
                      (str " in " in)))))
        (str/join "\n")))
 
-(defn- ensure-valid-desc [desc fx-type type->lifecycle]
-  (binding [*type->lifecycle* type->lifecycle]
+(defn- ensure-valid-desc [desc fx-type type->lifecycle type->id]
+  (binding [*type->lifecycle* type->lifecycle
+            *type->id* type->id]
     (when-let [explain-data (s/explain-data :cljfx/desc (assoc desc :fx/type fx-type))]
       (throw (ex-info (str "Invalid cljfx description of " (type->string fx-type) " type:\n"
                            (explain-str explain-data))
                       explain-data)))))
 
-(defn- wrap-lifecycle [fx-type type->lifecycle]
+(defn- wrap-lifecycle [fx-type type->lifecycle type->id]
   (let [lifecycle (or (type->lifecycle fx-type) fx-type)]
     (reify lifecycle/Lifecycle
       (create [_ desc opts]
         (let [stack (conj (::stack opts) fx-type)
               opts (assoc opts ::stack stack)]
           (try
-            (ensure-valid-desc desc fx-type type->lifecycle)
+            (ensure-valid-desc desc fx-type type->lifecycle type->id)
             (lifecycle/create lifecycle desc opts)
             (catch Exception ex (re-throw-with-stack ex stack)))))
       (advance [_ component desc opts]
         (let [stack (conj (::stack opts) fx-type)
               opts (assoc opts ::stack stack)]
           (try
-            (ensure-valid-desc desc fx-type type->lifecycle)
+            (ensure-valid-desc desc fx-type type->lifecycle type->id)
             (lifecycle/advance lifecycle component desc opts)
             (catch Exception ex (re-throw-with-stack ex stack)))))
       (delete [_ component opts]

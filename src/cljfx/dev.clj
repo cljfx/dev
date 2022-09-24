@@ -240,16 +240,18 @@
 
 (load "dev/validation")
 
-(defn wrap-type->lifecycle [type->lifecycle]
-  (let [f (memoize wrap-lifecycle)]
-    (fn [type]
-      (f type type->lifecycle))))
+(defn wrap-type->lifecycle
+  ([type->lifecycle]
+   (wrap-type->lifecycle type->lifecycle *type->id*))
+  ([type->lifecycle type->id]
+   (let [f (memoize wrap-lifecycle)]
+     (fn [type]
+       (f type type->lifecycle type->id)))))
 
 (def type->lifecycle
   (wrap-type->lifecycle (some-fn fx/keyword->lifecycle fx/fn->lifecycle)))
 
 ;; next steps:
-;; - profile if validation is a bottleneck?
 ;; - documentation
 ;; - release on clojars
 ;; stretch goals
