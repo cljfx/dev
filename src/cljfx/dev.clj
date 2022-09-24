@@ -240,6 +240,7 @@
 (load "dev/help")
 
 (defn help
+  "Print help about cljfx types and props"
   ([]
    (let [ts (->> @registry :types)]
     (println "Available cljfx types:")
@@ -344,9 +345,10 @@
   (wrap-type->lifecycle (some-fn fx/keyword->lifecycle fx/fn->lifecycle)))
 
 ;; next steps:
-;; - documentation
 ;; - release on clojars
 ;; stretch goals
 ;; - ui reference for searching the props/types/etc
 ;; - dev cljfx type->lifecycle wrapper that adds inspector capabilities.
 ;; - dev ui builder
+
+(help :label :graphic)

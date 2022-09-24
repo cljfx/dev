@@ -9,9 +9,12 @@
     (throw (doto (ex-info
                    (str (ex-message ex)
                         "\n\nCljfx component stack:\n  "
-                        (->> stack (map type->string) (str/join "\n  ")))
-                   {::cause ex})
+                        (->> stack (map type->string) (str/join "\n  "))
+                        "\n")
+                   (with-meta {::cause ex} {:type ::hidden}))
              (.setStackTrace (.getStackTrace ex))))))
+
+(defmethod print-method ::hidden [_ _])
 
 (defn- explain-str [explain-data]
   (->> explain-data
