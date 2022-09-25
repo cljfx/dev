@@ -2,11 +2,11 @@
 
 # Cljfx dev tools
 
-Cljfx is a declarative, functional and extensible wrapper of JavaFX inspired by better parts of react and re-frame. Cljfx dev tools are a set of tools that can help with developing cljfx applications that should not be included into production distribution of the cljfx app.
+Cljfx is a declarative, functional and extensible wrapper of JavaFX inspired by better parts of react and re-frame. Cljfx dev tools are a set of tools that help with developing cljfx applications but should not be included into the production distribution of the cljfx app.
 
 ## Installation
 
-See latest version in Clojars 
+See latest version on Clojars 
 
 ## Requirements
 
@@ -16,10 +16,21 @@ Cljfx dev tools require Java 11 or later.
 
 ### Props and types reference
 
-If you don't remember the props required by some cljfx type, or if you don't know what even are the available types, you can use `cljfx.dev/help` to look up this information:
+If you don't remember the props required by some cljfx type, or if you don't know what are the available types, you can use `cljfx.dev/help` to look up this information:
 
 ```clojure
 (require 'cljfx.dev)
+
+;; look up available types:
+(cljfx.dev/help)
+;; Available cljfx types:
+;; Cljfx type                             Instance class
+;; :accordion                             javafx.scene.control.Accordion
+;; :affine                                javafx.scene.transform.Affine
+;; ...etc
+
+
+
 ;; look up information about fx type:
 (cljfx.dev/help :label)
 ;; Cljfx type:
@@ -32,7 +43,9 @@ If you don't remember the props required by some cljfx type, or if you don't kno
 ;; :accessible-help                 string
 ;; :accessible-role                 either of: :button, :check-box, :check-menu-item, :combo-box, :context-menu, :date-picker, :decrement-button, :hyperlink, :image-view, :increment-button, :list-item, :list-view, :menu, :menu-bar, :menu-button, :menu-item, :node, :page-item, :pagination, :parent, :password-field, :progress-indicator, :radio-button, :radio-menu-item, :scroll-bar, :scroll-pane, :slider, :spinner, :split-menu-button, :tab-item, :tab-pane, :table-cell, :table-column, :table-row, :table-view, :text, :text-area, :text-field, :thumb, :titled-pane, :toggle-button, :tool-bar, :tooltip, :tree-item, :tree-table-cell, :tree-table-row, :tree-table-view, :tree-view
 ;; :accessible-role-description     string
-;; ...etc.
+;; ...etc
+
+
 
 ;; look up information about a prop:
 (cljfx.dev/help :label :graphic)
@@ -50,12 +63,12 @@ If you don't remember the props required by some cljfx type, or if you don't kno
 ;;  :ambient-light           javafx.scene.AmbientLight
 ;;  :anchor-pane             javafx.scene.layout.AnchorPane
 ;;  :arc                     javafx.scene.shape.Arc
-;;  ...
+;;  ...etc
 ```
 
 ### Improved error messages with spec
 
-You can set custom type->lifecycle opt that will validate all cljfx component descriptions using spec and properly describes the error:
+You can set custom type->lifecycle opt that will validate all cljfx component descriptions using spec and properly describe the error:
 
 ```clojure
 ;; suppose you have a simple app:
@@ -81,7 +94,7 @@ You can set custom type->lifecycle opt that will validate all cljfx component de
 (def renderer
   (fx/create-renderer
     :middleware (fx/wrap-map-desc #(assoc % :fx/type root-view))
-    ;; print errors in REPL's *err* output
+    ;; optional: print errors in REPL's *err* output
     :error-handler (bound-fn [^Throwable ex]
                      (.printStackTrace ^Throwable ex *err*))
     :opts (cond-> {}
