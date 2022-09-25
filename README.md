@@ -168,3 +168,7 @@ Additionally, you can validate individual descriptions while developing:
                                    :value-converter :integer}}}})
 ;; Success!
 ```
+
+## Acknowledgments
+
+Many thanks to [Clojurists Together](https://www.clojuriststogether.org/) for funding this work!
