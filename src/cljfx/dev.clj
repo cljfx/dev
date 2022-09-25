@@ -345,6 +345,12 @@
   (wrap-type->lifecycle (some-fn fx/keyword->lifecycle fx/fn->lifecycle)))
 
 (defn explain-desc
+  "Validate cljfx description and report any issues
+
+  Args:
+    type->lifecycle    the type->lifecycle fn used in opts of your app
+    type->id           custom type->id if you need a way to get id from your
+                       custom lifecycles"
   ([desc]
    (explain-desc desc *type->lifecycle* *type->id*))
   ([desc type->lifecycle]
