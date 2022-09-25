@@ -4,6 +4,18 @@
 
 [Cljfx](https://github.com/cljfx/cljfx) is a declarative, functional and extensible wrapper of JavaFX inspired by better parts of react and re-frame. Cljfx dev tools are a set of tools that help with developing cljfx applications but should not be included into the production distribution of the cljfx app.
 
+## Rationale
+
+The default developer experience of cljfx has some issues:
+- what are the allowed props for different JavaFX types is not clear and requires looking it up in the source code;
+- what are the allowed JavaFX type keywords requires looking it up in the source code;
+- errors when using non-existent props are unhelpful;
+- generally, errors that happen during cljfx lifecycle are unhelpful because the stack traces have mostly cljfx internals instead of user code.
+
+Cljfx dev tools solve these issues by providing:
+- reference for cljfx types and props;
+- specs for cljfx descriptions, so they can be validated (both individually and in running apps). 
+
 ## Installation
 
 See latest version on [Clojars](https://clojars.org/io.github.cljfx/dev).
