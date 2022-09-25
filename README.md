@@ -2,7 +2,7 @@
 
 # Cljfx dev tools
 
-Cljfx is a declarative, functional and extensible wrapper of JavaFX inspired by better parts of react and re-frame. Cljfx dev tools are a set of tools that help with developing cljfx applications but should not be included into the production distribution of the cljfx app.
+[Cljfx](https://github.com/cljfx/cljfx) is a declarative, functional and extensible wrapper of JavaFX inspired by better parts of react and re-frame. Cljfx dev tools are a set of tools that help with developing cljfx applications but should not be included into the production distribution of the cljfx app.
 
 ## Installation
 
