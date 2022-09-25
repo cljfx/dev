@@ -8,7 +8,7 @@
 (defn- validated [desc]
   @(fx/on-fx-thread
      (-> desc
-         (fx/create-component {:fx.opt/type->lifecycle fx.dev/type->lifecycle})
+         (fx/create-component {:fx.opt/type->lifecycle fx.dev/validating-type->lifecycle})
          fx/instance)))
 
 (deftest create-test
@@ -29,7 +29,7 @@
                                                 :text "a string"}]}))))
 
 (deftest advance-test
-  (let [opts {:fx.opt/type->lifecycle fx.dev/type->lifecycle}
+  (let [opts {:fx.opt/type->lifecycle fx.dev/validating-type->lifecycle}
         c (fx/create-component
             {:fx/type :label
              :text "foo"}
@@ -65,7 +65,7 @@
         old-err System/err]
     (System/setErr err)
     @(fx/on-fx-thread
-       (let [opts {:fx.opt/type->lifecycle fx.dev/type->lifecycle}
+       (let [opts {:fx.opt/type->lifecycle fx.dev/validating-type->lifecycle}
              c (fx/create-component
                  {:fx/type :stage
                   :showing true

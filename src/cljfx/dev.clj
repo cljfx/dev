@@ -319,7 +319,7 @@
 
 (load "dev/validation")
 
-(defn wrap-type->lifecycle
+(defn wrap-validating-type->lifecycle
   "Wrap type->lifecycle used in the cljfx UI app with improved error messages
 
   Wrapped lifecycle performs spec validation of cljfx descriptions that results
@@ -333,16 +333,16 @@
     type->id           custom type->id if you need a way to get id from your
                        custom lifecycles"
   ([type->lifecycle]
-   (wrap-type->lifecycle type->lifecycle *type->id*))
+   (wrap-validating-type->lifecycle type->lifecycle *type->id*))
   ([type->lifecycle type->id]
    (let [f (memoize wrap-lifecycle)]
      (fn [type]
        (f type type->lifecycle type->id)))))
 
-(def type->lifecycle
+(def validating-type->lifecycle
   "Default type->lifecycle that can be used in the cljfx UI app to improve error
   messages"
-  (wrap-type->lifecycle (some-fn fx/keyword->lifecycle fx/fn->lifecycle)))
+  (wrap-validating-type->lifecycle (some-fn fx/keyword->lifecycle fx/fn->lifecycle)))
 
 (defn explain-desc
   "Validate cljfx description and report any issues
