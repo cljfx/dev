@@ -319,7 +319,7 @@
 
 (load "dev/validation")
 
-(defn wrap-validating-type->lifecycle
+(defn wrap-type->lifecycle
   "Wrap type->lifecycle used in the cljfx UI app with improved error messages
 
   Wrapped lifecycle performs spec validation of cljfx descriptions that results
@@ -328,21 +328,21 @@
   Additionally, exceptions thrown during cljfx lifecycle show a cljfx component
   stack to help with debugging.
 
-  Args:
+  Optional kv-args:
     type->lifecycle    the type->lifecycle fn used in opts of your app
     type->id           custom type->id if you need a way to get id from your
                        custom lifecycles"
-  ([type->lifecycle]
-   (wrap-validating-type->lifecycle type->lifecycle *type->id*))
-  ([type->lifecycle type->id]
-   (let [f (memoize wrap-lifecycle)]
-     (fn [type]
-       (f type type->lifecycle type->id)))))
+  [& {:keys [type->lifecycle type->id]
+      :or {type->lifecycle *type->lifecycle*
+           type->id *type->id*}}]
+  (let [f (memoize wrap-lifecycle)]
+    (fn [type]
+      (f type type->lifecycle type->id))))
 
-(def validating-type->lifecycle
+(def type->lifecycle
   "Default type->lifecycle that can be used in the cljfx UI app to improve error
   messages"
-  (wrap-validating-type->lifecycle (some-fn fx/keyword->lifecycle fx/fn->lifecycle)))
+  (wrap-type->lifecycle))
 
 (defn explain-desc
   "Validate cljfx description and report any issues
@@ -351,16 +351,14 @@
     type->lifecycle    the type->lifecycle fn used in opts of your app
     type->id           custom type->id if you need a way to get id from your
                        custom lifecycles"
-  ([desc]
-   (explain-desc desc *type->lifecycle* *type->id*))
-  ([desc type->lifecycle]
-   (explain-desc desc type->lifecycle *type->id*))
-  ([desc type->lifecycle type->id]
-   (binding [*type->lifecycle* type->lifecycle
-             *type->id* type->id]
-     (if-let [explain-data (s/explain-data :cljfx/desc desc)]
-       (println (explain-str explain-data))
-       (println "Success!")))))
+  [desc & {:keys [type->lifecycle type->id]
+           :or {type->lifecycle *type->lifecycle*
+                type->id *type->id*}}]
+  (binding [*type->lifecycle* type->lifecycle
+            *type->id* type->id]
+    (if-let [explain-data (s/explain-data :cljfx/desc desc)]
+      (println (explain-str explain-data))
+      (println "Success!"))))
 
 ;; stretch goals
 ;; - ui reference for searching the props/types/etc

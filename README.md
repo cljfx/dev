@@ -14,7 +14,8 @@ The default developer experience of cljfx has some issues:
 
 Cljfx dev tools solve these issues by providing:
 - reference for cljfx types and props;
-- specs for cljfx descriptions, so they can be validated (both individually and in running apps). 
+- specs for cljfx descriptions, so they can be validated;
+- dev-time lifecycles that perform validation and add cljfx component stacks to exceptions to help with debugging;
 
 ## Installation
 
@@ -112,7 +113,7 @@ You can set validating type->lifecycle opt that will validate all cljfx componen
     :opts (cond-> {}
             ;; Validate descriptions in dev
             in-development?
-            (assoc :fx.opt/type->lifecycle @(requiring-resolve 'cljfx.dev/validating-type->lifecycle)))))
+            (assoc :fx.opt/type->lifecycle @(requiring-resolve 'cljfx.dev/type->lifecycle)))))
 
 (defn -main []
   (fx/mount-renderer state renderer))
@@ -137,7 +138,7 @@ You can set validating type->lifecycle opt that will validate all cljfx componen
 ;;     at cljfx.dev$wrap_lifecycle$reify__22150.advance(validation.clj:80)
 ;;     at ...
 ```
-If you already use custom type->lifecycle opt, instead of using `cljfx.dev/validating-type->lifecycle` you can use `cljfx.dev/wrap-validating-type->lifecycle` to wrap your type->lifecycle with validations. 
+If you already use custom type->lifecycle opt, instead of using `cljfx.dev/type->lifecycle` you can use `cljfx.dev/wrap-type->lifecycle` to wrap your type->lifecycle with validations. 
 
 Additionally, you can validate individual descriptions while developing:
 ```clojure
