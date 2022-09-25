@@ -6,7 +6,7 @@
 
 ## Installation
 
-See latest version on Clojars 
+See latest version on [Clojars](https://clojars.org/io.github.cljfx/dev).
 
 ## Requirements
 
