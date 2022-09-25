@@ -24,6 +24,7 @@
      :target-dir class-dir})
   (b/jar {:class-dir class-dir
           :jar-file jar-file})
+  (b/git-process {:git-args ["tag" (str "v" version)]})
   (aether/deploy
     :coordinates [lib version]
     :jar-file jar-file
@@ -39,4 +40,5 @@
                                             String/valueOf)
                                         (do (print "Clojars token:")
                                             (flush)
-                                            (read-line)))))))
+                                            (read-line))))))
+  (b/git-process {:git-args ["push" "origin" (str "v" version)]}))

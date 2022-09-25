@@ -68,7 +68,7 @@ If you don't remember the props required by some cljfx type, or if you don't kno
 
 ### Improved error messages with spec
 
-You can set custom type->lifecycle opt that will validate all cljfx component descriptions using spec and properly describe the error:
+You can set validating type->lifecycle opt that will validate all cljfx component descriptions using spec and properly describe the errors:
 
 ```clojure
 ;; suppose you have a simple app:
@@ -124,4 +124,34 @@ You can set custom type->lifecycle opt that will validate all cljfx component de
 ;;     at cljfx.dev$ensure_valid_desc.invoke(validation.clj:58)
 ;;     at cljfx.dev$wrap_lifecycle$reify__22150.advance(validation.clj:80)
 ;;     at ...
+```
+If you already use custom type->lifecycle opt, instead of using `cljfx.dev/type->lifecycle` you can use `cljfx.dev/wrap-type->lifecycle` to wrap your type->lifecycle with validations. 
+
+Additionally, you can validate individual descriptions while developing:
+```clojure
+(cljfx.dev/explain-desc
+  {:fx/type :stage
+   :showing true
+   :scene {:fx/type :scene
+           :root {:fx/type :text-formatter
+                  :value-converter :int}}})
+;; :int - failed: #{:local-date-time :long :double :short :date-time :number :local-time :default :float :integer :byte :local-date :big-integer :boolean :character :big-decimal} in [:scene :root :value-converter]
+;; :int - failed: (instance-of javafx.util.StringConverter) in [:scene :root :value-converter]
+
+(cljfx.dev/explain-desc
+  {:fx/type :stage
+   :showing true
+   :scene {:fx/type :scene
+           :root {:fx/type :text-formatter
+                  :value-converter :integer}}})
+;; {:fx/type :text-formatter, :value-converter :integer} - failed: (desc-of (quote javafx.scene.Parent)) in [:scene :root]
+
+(cljfx.dev/explain-desc
+  {:fx/type :stage
+   :showing true
+   :scene {:fx/type :scene
+           :root {:fx/type :text-field
+                  :text-formatter {:fx/type :text-formatter
+                                   :value-converter :integer}}}})
+;; Success!
 ```

@@ -344,6 +344,18 @@
   messages"
   (wrap-type->lifecycle (some-fn fx/keyword->lifecycle fx/fn->lifecycle)))
 
+(defn explain-desc
+  ([desc]
+   (explain-desc desc *type->lifecycle* *type->id*))
+  ([desc type->lifecycle]
+   (explain-desc desc type->lifecycle *type->id*))
+  ([desc type->lifecycle type->id]
+   (binding [*type->lifecycle* type->lifecycle
+             *type->id* type->id]
+     (if-let [explain-data (s/explain-data :cljfx/desc desc)]
+       (println (explain-str explain-data))
+       (println "Success!")))))
+
 ;; stretch goals
 ;; - ui reference for searching the props/types/etc
 ;; - dev cljfx type->lifecycle wrapper that adds inspector capabilities.
