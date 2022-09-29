@@ -39,7 +39,7 @@
   :spec (s/keys :req-un [:cljfx.ext-many/desc])
   :of 'java.util.Collection)
 
-(s/def :cljfx.make-ext-with-props/props map?)
+(s/def :cljfx.make-ext-with-props/props (s/nilable map?))
 
 (register-type! `fx/make-ext-with-props
   :spec (s/keys :req-un [:cljfx/desc :cljfx.make-ext-with-props/props])

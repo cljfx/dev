@@ -360,7 +360,15 @@
       (println (explain-str explain-data))
       (println "Success!"))))
 
+(load "dev/ui")
+
+(defn help-ui
+  "Open a window with cljfx type and prop reference"
+  []
+  (launch-help-ui!)
+  nil)
+
 ;; stretch goals
-;; - ui reference for searching the props/types/etc
+;; - integrate javadocs
 ;; - dev cljfx type->lifecycle wrapper that adds inspector capabilities.
 ;; - dev ui builder
