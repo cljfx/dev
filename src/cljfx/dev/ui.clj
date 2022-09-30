@@ -16,6 +16,15 @@
         :-fx-border-color "#aaa"
         ":focused > .virtual-flow > .clipped-container > .sheet > .list-cell:focused"
           {:-fx-background-color "#4E84E0"}}
+     ".tab-pane:focused > .tab-header-area > .headers-region > .tab:selected .focus-indicator"
+     {:-fx-border-color "#4E84E0"
+      :-fx-border-width 2
+      :-fx-border-insets [-4 -4 -15 -5]
+      :-fx-border-radius "5"}
+     ".tab" {:-fx-background-color "#aaa, #c2c2c2"
+             :-fx-background-radius "6 6 0 0, 5 5 0 0"
+             ":selected" {:-fx-background-color "#aaa, #ccc"}}
+     ".tab-header-background" {:-fx-background-color "#aaa, #ccc, #ccc"}
      ".popup-root" {:-fx-background-color "#ddd"
                     :-fx-effect "dropshadow(gaussian, #0006, 8, 0, 0, 2)"}
      ".filter-term" {:-fx-background-color "#42B300"
@@ -75,6 +84,8 @@
 
 (defn- help-list-view [{:keys [filter-term selection items key]}]
   {:fx/type :stack-pane
+   :min-width 150
+   :max-width 150
    :children [{:fx/type fx.ext.list-view/with-selection-props
                :props {:selected-item selection
                        :on-selected-item-changed {:fn #'set-help-ui-selection :key key}}
@@ -215,7 +226,8 @@
         selected-props (-> registry :props (get selected-type))
         filtered-prop-map (process-filter-selection prop (keys selected-props))
         selected-prop-id (:selection filtered-prop-map)
-        selected-prop (get selected-props selected-prop-id)]
+        selected-prop (get selected-props selected-prop-id)
+        javadoc (get-in registry [:javadoc selected-type])]
     {:fx/type :stage
      :showing true
      :width 900
@@ -225,9 +237,6 @@
       :root {:fx/type :grid-pane
              :style {:-fx-background-color "#ccc"}
              :column-constraints [{:fx/type :column-constraints
-                                   :min-width 150
-                                   :max-width 150}
-                                  {:fx/type :column-constraints
                                    :min-width 150
                                    :max-width 150}
                                   {:fx/type :column-constraints
@@ -244,10 +253,7 @@
                           :fx/type help-list-view
                           :key :type)
                         {:fx/type help-ui-syntax-view
-                         :style {:-fx-border-width [0 0 1 0]
-                                 :-fx-border-color "#aaa"}
                          :grid-pane/column 1
-                         :grid-pane/column-span 2
                          :grid-pane/row 0
                          :key :type-hover
                          :hover type-hover
@@ -264,19 +270,30 @@
                                           (when (and (not selected-props) (:spec type-map))
                                             (str "\nSpec: " (pr-str (s/describe (:spec type-map)))))))
                                    "")}
-                        {:fx/type ext-recreate-on-key-changed
+                        {:fx/type :tab-pane
                          :grid-pane/row 1
                          :grid-pane/column 1
-                         :key selected-type
-                         :desc (assoc filtered-prop-map :fx/type help-list-view :key :prop)}
-                        {:fx/type help-ui-syntax-view
-                         :grid-pane/row 1
-                         :grid-pane/column 2
-                         :key :prop-hover
-                         :hover prop-hover
-                         :syntax (if selected-prop
-                                   (long-prop-help-syntax selected-prop)
-                                   "")}]}}}))
+                         :tabs
+                         [{:fx/type :tab
+                           :text "Props"
+                           :closable false
+                           :content {:fx/type :h-box
+                                     :children [{:fx/type ext-recreate-on-key-changed
+                                                 :key selected-type
+                                                 :desc (assoc filtered-prop-map :fx/type help-list-view :key :prop)}
+                                                {:fx/type help-ui-syntax-view
+                                                 :h-box/hgrow :always
+                                                 :key :prop-hover
+                                                 :hover prop-hover
+                                                 :syntax (if selected-prop
+                                                           (long-prop-help-syntax selected-prop)
+                                                           "")}]}}
+                          {:fx/type :tab
+                           :text "Javadoc"
+                           :disable (nil? javadoc)
+                           :closable false
+                           :content {:fx/type :web-view
+                                     :url (str javadoc-prefix javadoc)}}]}]}}}))
 
 (defn- launch-help-ui! []
   (let [state (atom {:registry @registry

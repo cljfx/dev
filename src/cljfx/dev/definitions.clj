@@ -2494,6 +2494,217 @@
   :of 'javafx.scene.chart.XYChart$Series)
 
 (comment
+
+  (def --index
+    (net.cgrand.enlive-html/html-resource ;; super slow, def?
+      (java.io.StringReader.
+        (slurp "https://openjfx.io/javadoc/14/index-all.html"))))
+
+  (->> (net.cgrand.enlive-html/select
+         --index
+         [(net.cgrand.enlive-html/attr-starts :title "class in")])
+       (map #(-> % :attrs :href))
+       distinct
+       (map #(let [[module path] (str/split % #"/" 2)]
+               [module (second (re-matches #"^[a-z/]+(.+)\.html$" path)) path]))
+       (remove
+         #{["javafx.graphics" "StringConverter" "javafx/css/converter/StringConverter.html"]})
+       (map #(let [[module class-name path] %]
+               [(->> (str/split (str/replace class-name "." "") #"(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])")
+                     (map str/lower-case)
+                     (str/join "-")
+                     (keyword))
+                module
+                path]))
+       (map (fn [[k v path]]
+              [(if (clojure.string/starts-with? (name k) "spinner-value-factory-")
+                 (keyword (subs (name k) (count "spinner-value-factory-")))
+                 k)
+               v
+               path]))
+       (filter (fn [[k]]
+                 (contains? (:types @@#'cljfx.dev/registry) k)))
+       (map (fn [[k v p]]
+              [k (str v "/" p)]))
+       (into {}))
+
+  ,)
+
+(swap! registry assoc :javadoc
+       {:sphere "javafx.graphics/javafx/scene/shape/Sphere.html"
+        :indexed-cell "javafx.controls/javafx/scene/control/IndexedCell.html"
+        :svg-path "javafx.graphics/javafx/scene/shape/SVGPath.html"
+        :path "javafx.graphics/javafx/scene/shape/Path.html"
+        :html-editor "javafx.web/javafx/scene/web/HTMLEditor.html"
+        :text-area "javafx.controls/javafx/scene/control/TextArea.html"
+        :pie-chart "javafx.controls/javafx/scene/chart/PieChart.html"
+        :parallel-camera "javafx.graphics/javafx/scene/ParallelCamera.html"
+        :tile-pane "javafx.graphics/javafx/scene/layout/TilePane.html"
+        :table-view "javafx.controls/javafx/scene/control/TableView.html"
+        :bloom "javafx.graphics/javafx/scene/effect/Bloom.html"
+        :gaussian-blur "javafx.graphics/javafx/scene/effect/GaussianBlur.html"
+        :point-light "javafx.graphics/javafx/scene/PointLight.html"
+        :progress-bar "javafx.controls/javafx/scene/control/ProgressBar.html"
+        :combo-box "javafx.controls/javafx/scene/control/ComboBox.html"
+        :pane "javafx.graphics/javafx/scene/layout/Pane.html"
+        :popup "javafx.graphics/javafx/stage/Popup.html"
+        :menu-item "javafx.controls/javafx/scene/control/MenuItem.html"
+        :anchor-pane "javafx.graphics/javafx/scene/layout/AnchorPane.html"
+        :table-row "javafx.controls/javafx/scene/control/TableRow.html"
+        :custom-menu-item "javafx.controls/javafx/scene/control/CustomMenuItem.html"
+        :group "javafx.graphics/javafx/scene/Group.html"
+        :media-view "javafx.media/javafx/scene/media/MediaView.html"
+        :stage "javafx.graphics/javafx/stage/Stage.html"
+        :arc "javafx.graphics/javafx/scene/shape/Arc.html"
+        :light-spot "javafx.graphics/javafx/scene/effect/Light.Spot.html"
+        :affine "javafx.graphics/javafx/scene/transform/Affine.html"
+        :shear "javafx.graphics/javafx/scene/transform/Shear.html"
+        :radio-menu-item "javafx.controls/javafx/scene/control/RadioMenuItem.html"
+        :close-path "javafx.graphics/javafx/scene/shape/ClosePath.html"
+        :list-spinner-value-factory "javafx.controls/javafx/scene/control/SpinnerValueFactory.ListSpinnerValueFactory.html"
+        :number-axis "javafx.controls/javafx/scene/chart/NumberAxis.html"
+        :scale "javafx.graphics/javafx/scene/transform/Scale.html"
+        :button "javafx.controls/javafx/scene/control/Button.html"
+        :lighting "javafx.graphics/javafx/scene/effect/Lighting.html"
+        :tool-bar "javafx.controls/javafx/scene/control/ToolBar.html"
+        :bar-chart "javafx.controls/javafx/scene/chart/BarChart.html"
+        :xy-chart-series "javafx.controls/javafx/scene/chart/XYChart.Series.html"
+        :radio-button "javafx.controls/javafx/scene/control/RadioButton.html"
+        :perspective-camera "javafx.graphics/javafx/scene/PerspectiveCamera.html"
+        :move-to "javafx.graphics/javafx/scene/shape/MoveTo.html"
+        :text-input-dialog "javafx.controls/javafx/scene/control/TextInputDialog.html"
+        :split-menu-button "javafx.controls/javafx/scene/control/SplitMenuButton.html"
+        :rotate-transition "javafx.graphics/javafx/animation/RotateTransition.html"
+        :pause-transition "javafx.graphics/javafx/animation/PauseTransition.html"
+        :grid-pane "javafx.graphics/javafx/scene/layout/GridPane.html"
+        :combo-box-list-cell "javafx.controls/javafx/scene/control/cell/ComboBoxListCell.html"
+        :sub-scene "javafx.graphics/javafx/scene/SubScene.html"
+        :scale-transition "javafx.graphics/javafx/animation/ScaleTransition.html"
+        :text-flow "javafx.graphics/javafx/scene/text/TextFlow.html"
+        :box "javafx.graphics/javafx/scene/shape/Box.html"
+        :cubic-curve "javafx.graphics/javafx/scene/shape/CubicCurve.html"
+        :quad-curve-to "javafx.graphics/javafx/scene/shape/QuadCurveTo.html"
+        :circle "javafx.graphics/javafx/scene/shape/Circle.html"
+        :text-field-list-cell "javafx.controls/javafx/scene/control/cell/TextFieldListCell.html"
+        :motion-blur "javafx.graphics/javafx/scene/effect/MotionBlur.html"
+        :line-to "javafx.graphics/javafx/scene/shape/LineTo.html"
+        :h-line-to "javafx.graphics/javafx/scene/shape/HLineTo.html"
+        :popup-control "javafx.controls/javafx/scene/control/PopupControl.html"
+        :drop-shadow "javafx.graphics/javafx/scene/effect/DropShadow.html"
+        :flow-pane "javafx.graphics/javafx/scene/layout/FlowPane.html"
+        :stacked-bar-chart "javafx.controls/javafx/scene/chart/StackedBarChart.html"
+        :tree-table-cell "javafx.controls/javafx/scene/control/TreeTableCell.html"
+        :alert "javafx.controls/javafx/scene/control/Alert.html"
+        :mesh-view "javafx.graphics/javafx/scene/shape/MeshView.html"
+        :color-adjust "javafx.graphics/javafx/scene/effect/ColorAdjust.html"
+        :progress-indicator "javafx.controls/javafx/scene/control/ProgressIndicator.html"
+        :text-field "javafx.controls/javafx/scene/control/TextField.html"
+        :tree-view "javafx.controls/javafx/scene/control/TreeView.html"
+        :menu-bar "javafx.controls/javafx/scene/control/MenuBar.html"
+        :fill-transition "javafx.graphics/javafx/animation/FillTransition.html"
+        :color-picker "javafx.controls/javafx/scene/control/ColorPicker.html"
+        :image-input "javafx.graphics/javafx/scene/effect/ImageInput.html"
+        :category-axis "javafx.controls/javafx/scene/chart/CategoryAxis.html"
+        :stack-pane "javafx.graphics/javafx/scene/layout/StackPane.html"
+        :xy-chart-data "javafx.controls/javafx/scene/chart/XYChart.Data.html"
+        :tree-item "javafx.controls/javafx/scene/control/TreeItem.html"
+        :accordion "javafx.controls/javafx/scene/control/Accordion.html"
+        :spinner "javafx.controls/javafx/scene/control/Spinner.html"
+        :v-box "javafx.graphics/javafx/scene/layout/VBox.html"
+        :double-spinner-value-factory "javafx.controls/javafx/scene/control/SpinnerValueFactory.DoubleSpinnerValueFactory.html"
+        :canvas "javafx.graphics/javafx/scene/canvas/Canvas.html"
+        :password-field "javafx.controls/javafx/scene/control/PasswordField.html"
+        :v-line-to "javafx.graphics/javafx/scene/shape/VLineTo.html"
+        :region "javafx.graphics/javafx/scene/layout/Region.html"
+        :displacement-map "javafx.graphics/javafx/scene/effect/DisplacementMap.html"
+        :cubic-curve-to "javafx.graphics/javafx/scene/shape/CubicCurveTo.html"
+        :scroll-pane "javafx.controls/javafx/scene/control/ScrollPane.html"
+        :triangle-mesh "javafx.graphics/javafx/scene/shape/TriangleMesh.html"
+        :split-pane "javafx.controls/javafx/scene/control/SplitPane.html"
+        :toggle-button "javafx.controls/javafx/scene/control/ToggleButton.html"
+        :date-picker "javafx.controls/javafx/scene/control/DatePicker.html"
+        :date-cell "javafx.controls/javafx/scene/control/DateCell.html"
+        :table-column "javafx.controls/javafx/scene/control/TableColumn.html"
+        :web-view "javafx.web/javafx/scene/web/WebView.html"
+        :line "javafx.graphics/javafx/scene/shape/Line.html"
+        :list-view "javafx.controls/javafx/scene/control/ListView.html"
+        :choice-box "javafx.controls/javafx/scene/control/ChoiceBox.html"
+        :bubble-chart "javafx.controls/javafx/scene/chart/BubbleChart.html"
+        :stacked-area-chart "javafx.controls/javafx/scene/chart/StackedAreaChart.html"
+        :pagination "javafx.controls/javafx/scene/control/Pagination.html"
+        :media-player "javafx.media/javafx/scene/media/MediaPlayer.html"
+        :quad-curve "javafx.graphics/javafx/scene/shape/QuadCurve.html"
+        :ambient-light "javafx.graphics/javafx/scene/AmbientLight.html"
+        :check-box "javafx.controls/javafx/scene/control/CheckBox.html"
+        :label "javafx.controls/javafx/scene/control/Label.html"
+        :image-view "javafx.graphics/javafx/scene/image/ImageView.html"
+        :color-input "javafx.graphics/javafx/scene/effect/ColorInput.html"
+        :cylinder "javafx.graphics/javafx/scene/shape/Cylinder.html"
+        :border-pane "javafx.graphics/javafx/scene/layout/BorderPane.html"
+        :row-constraints "javafx.graphics/javafx/scene/layout/RowConstraints.html"
+        :context-menu "javafx.controls/javafx/scene/control/ContextMenu.html"
+        :integer-spinner-value-factory "javafx.controls/javafx/scene/control/SpinnerValueFactory.IntegerSpinnerValueFactory.html"
+        :translate-transition "javafx.graphics/javafx/animation/TranslateTransition.html"
+        :ellipse "javafx.graphics/javafx/scene/shape/Ellipse.html"
+        :pie-chart-data "javafx.controls/javafx/scene/chart/PieChart.Data.html"
+        :tree-table-row "javafx.controls/javafx/scene/control/TreeTableRow.html"
+        :inner-shadow "javafx.graphics/javafx/scene/effect/InnerShadow.html"
+        :light-distant "javafx.graphics/javafx/scene/effect/Light.Distant.html"
+        :table-cell "javafx.controls/javafx/scene/control/TableCell.html"
+        :stroke-transition "javafx.graphics/javafx/animation/StrokeTransition.html"
+        :translate "javafx.graphics/javafx/scene/transform/Translate.html"
+        :dialog "javafx.controls/javafx/scene/control/Dialog.html"
+        :tree-cell "javafx.controls/javafx/scene/control/TreeCell.html"
+        :rotate "javafx.graphics/javafx/scene/transform/Rotate.html"
+        :sequential-transition "javafx.graphics/javafx/animation/SequentialTransition.html"
+        :hyperlink "javafx.controls/javafx/scene/control/Hyperlink.html"
+        :tab-pane "javafx.controls/javafx/scene/control/TabPane.html"
+        :column-constraints "javafx.graphics/javafx/scene/layout/ColumnConstraints.html"
+        :button-bar "javafx.controls/javafx/scene/control/ButtonBar.html"
+        :blend "javafx.graphics/javafx/scene/effect/Blend.html"
+        :path-transition "javafx.graphics/javafx/animation/PathTransition.html"
+        :box-blur "javafx.graphics/javafx/scene/effect/BoxBlur.html"
+        :fade-transition "javafx.graphics/javafx/animation/FadeTransition.html"
+        :menu-button "javafx.controls/javafx/scene/control/MenuButton.html"
+        :area-chart "javafx.controls/javafx/scene/chart/AreaChart.html"
+        :choice-dialog "javafx.controls/javafx/scene/control/ChoiceDialog.html"
+        :h-box "javafx.graphics/javafx/scene/layout/HBox.html"
+        :tree-table-column "javafx.controls/javafx/scene/control/TreeTableColumn.html"
+        :shadow "javafx.graphics/javafx/scene/effect/Shadow.html"
+        :tab "javafx.controls/javafx/scene/control/Tab.html"
+        :separator "javafx.controls/javafx/scene/control/Separator.html"
+        :check-menu-item "javafx.controls/javafx/scene/control/CheckMenuItem.html"
+        :dialog-pane "javafx.controls/javafx/scene/control/DialogPane.html"
+        :perspective-transform "javafx.graphics/javafx/scene/effect/PerspectiveTransform.html"
+        :arc-to "javafx.graphics/javafx/scene/shape/ArcTo.html"
+        :cell "javafx.controls/javafx/scene/control/Cell.html"
+        :polyline "javafx.graphics/javafx/scene/shape/Polyline.html"
+        :phong-material "javafx.graphics/javafx/scene/paint/PhongMaterial.html"
+        :media "javafx.media/javafx/scene/media/Media.html"
+        :glow "javafx.graphics/javafx/scene/effect/Glow.html"
+        :parallel-transition "javafx.graphics/javafx/animation/ParallelTransition.html"
+        :toggle-group "javafx.controls/javafx/scene/control/ToggleGroup.html"
+        :scatter-chart "javafx.controls/javafx/scene/chart/ScatterChart.html"
+        :reflection "javafx.graphics/javafx/scene/effect/Reflection.html"
+        :menu "javafx.controls/javafx/scene/control/Menu.html"
+        :tooltip "javafx.controls/javafx/scene/control/Tooltip.html"
+        :rectangle "javafx.graphics/javafx/scene/shape/Rectangle.html"
+        :tree-table-view "javafx.controls/javafx/scene/control/TreeTableView.html"
+        :list-cell "javafx.controls/javafx/scene/control/ListCell.html"
+        :line-chart "javafx.controls/javafx/scene/chart/LineChart.html"
+        :text-formatter "javafx.controls/javafx/scene/control/TextFormatter.html"
+        :slider "javafx.controls/javafx/scene/control/Slider.html"
+        :polygon "javafx.graphics/javafx/scene/shape/Polygon.html"
+        :sepia-tone "javafx.graphics/javafx/scene/effect/SepiaTone.html"
+        :scene "javafx.graphics/javafx/scene/Scene.html"
+        :titled-pane "javafx.controls/javafx/scene/control/TitledPane.html"
+        :text "javafx.graphics/javafx/scene/text/Text.html"
+        :scroll-bar "javafx.controls/javafx/scene/control/ScrollBar.html"
+        :light-point "javafx.graphics/javafx/scene/effect/Light.Point.html"})
+
+(def ^:private javadoc-prefix "https://openjfx.io/javadoc/18/")
+
+(comment
   (require '[clojure.java.io :as io])
   (defn- prop-forms->descs [xs & {:keys [on-class imports]}]
     (let [conform-or-nil (fn [spec value]

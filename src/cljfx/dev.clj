@@ -240,7 +240,10 @@
 (load "dev/help")
 
 (defn help
-  "Print help about cljfx types and props"
+  "Print help about cljfx types and props
+
+  All the information provided by this window can also be retrieved using
+  cjlfx.dev/help-ui window."
   ([]
    (let [ts (->> @registry :types)]
     (println "Available cljfx types:")
@@ -255,7 +258,8 @@
      (or (keyword? fx-type) (qualified-symbol? fx-type))
      (let [r @registry
            props (get-in r [:props fx-type])
-           type (get-in r [:types fx-type])]
+           type (get-in r [:types fx-type])
+           javadoc (get-in r [:javadoc fx-type])]
        (when (or type props)
          (println "Cljfx type:")
          (println fx-type)
@@ -263,6 +267,10 @@
        (when (symbol? (:of type))
          (println "Instance class:")
          (println (:of type))
+         (println))
+       (when javadoc
+         (println "Javadoc URL:")
+         (println (str javadoc-prefix javadoc))
          (println))
        (when (:req type)
          (if (set? (:req type))
@@ -363,12 +371,19 @@
 (load "dev/ui")
 
 (defn help-ui
-  "Open a window with cljfx type and prop reference"
+  "Open a window with cljfx type and prop reference
+
+  All the information provided by this window can also be retrieved using
+  cjlfx.dev/help fn.
+
+  Controls in the window:
+  - type when focused on type/prop list views - filter the list view
+  - Escape when focused on type/prop list views - clear the filter
+  - Ctrl+Tab/Ctrl+Shift+Tab when focuesed on prop/javadoc tab pane - switch tabs"
   []
   (launch-help-ui!)
   nil)
 
 ;; stretch goals
-;; - integrate javadocs
 ;; - dev cljfx type->lifecycle wrapper that adds inspector capabilities.
 ;; - dev ui builder
