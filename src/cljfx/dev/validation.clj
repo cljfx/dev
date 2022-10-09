@@ -1,15 +1,17 @@
 (in-ns 'cljfx.dev)
 
-(defn- type->string [fx-type]
-  (str (or (*type->id* fx-type) fx-type)))
+(defn- type->string [type->id fx-type]
+  (str (or (type->id fx-type) fx-type)))
 
-(defn- re-throw-with-stack [^Throwable ex stack]
+(defn- re-throw-with-stack [type->id ^Throwable ex stack]
   (if (::cause (ex-data ex))
     (throw ex)
     (throw (doto (ex-info
                    (str (ex-message ex)
                         "\n\nCljfx component stack:\n  "
-                        (->> stack (map type->string) (str/join "\n  "))
+                        (->> stack
+                             (map #(type->string type->id %))
+                             (str/join "\n  "))
                         "\n")
                    (with-meta {::cause ex} {:type ::hidden}))
              (.setStackTrace (.getStackTrace ex))))))
@@ -62,7 +64,7 @@
   (binding [*type->lifecycle* type->lifecycle
             *type->id* type->id]
     (when-let [explain-data (s/explain-data :cljfx/desc (assoc desc :fx/type fx-type))]
-      (throw (ex-info (str "Invalid cljfx description of " (type->string fx-type) " type:\n"
+      (throw (ex-info (str "Invalid cljfx description of " (type->string type->id fx-type) " type:\n"
                            (explain-str explain-data))
                       explain-data)))))
 
@@ -75,17 +77,24 @@
           (try
             (ensure-valid-desc desc fx-type type->lifecycle type->id)
             (lifecycle/create lifecycle desc opts)
-            (catch Exception ex (re-throw-with-stack ex stack)))))
+            (catch Exception ex (re-throw-with-stack type->id ex stack)))))
       (advance [_ component desc opts]
         (let [stack (conj (::stack opts) fx-type)
               opts (assoc opts ::stack stack)]
           (try
             (ensure-valid-desc desc fx-type type->lifecycle type->id)
             (lifecycle/advance lifecycle component desc opts)
-            (catch Exception ex (re-throw-with-stack ex stack)))))
+            (catch Exception ex (re-throw-with-stack type->id ex stack)))))
       (delete [_ component opts]
         (let [stack (conj (::stack opts) fx-type)
               opts (assoc opts ::stack stack)]
           (try
             (lifecycle/delete lifecycle component opts)
-            (catch Exception ex (re-throw-with-stack ex stack))))))))
+            (catch Exception ex (re-throw-with-stack type->id ex stack))))))))
+
+;; Ensure there is state at top level
+;; When root node is found, add listener (F12 by default) to open UI
+;; Should be configurable if open by default or wait for root node to add listener (default)
+;; inspector view:
+;; 1. show tree of components
+;; 2. for components, try to show props. by looking up something like :child* :props?
