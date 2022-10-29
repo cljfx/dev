@@ -337,15 +337,18 @@
   stack to help with debugging.
 
   Optional kv-args:
-    type->lifecycle    the type->lifecycle fn used in opts of your app
-    type->id           custom type->id if you need a way to get id from your
-                       custom lifecycles"
-  [& {:keys [type->lifecycle type->id]
+    type->lifecycle       the type->lifecycle fn used in opts of your app
+    type->id              custom type->id if you need a way to get id from your
+                          custom lifecycles
+    inspector-shortcut    shortcut to open cljfx component inspector view, key
+                          combination, defaults to [:f12]"
+  [& {:keys [type->lifecycle type->id inspector-shortcut]
       :or {type->lifecycle *type->lifecycle*
-           type->id *type->id*}}]
+           type->id *type->id*
+           inspector-shortcut [:f12]}}]
   (let [f (memoize wrap-lifecycle)]
     (fn [type]
-      (f type type->lifecycle type->id))))
+      (f type type->lifecycle type->id inspector-shortcut))))
 
 (def type->lifecycle
   "Default type->lifecycle that can be used in the cljfx UI app to improve error

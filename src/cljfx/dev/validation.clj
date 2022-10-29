@@ -1,6 +1,7 @@
 (in-ns 'cljfx.dev)
 
 (require '[cljfx.component :as component]
+         '[cljfx.coerce :as coerce]
          '[cljfx.fx.parent :as fx.parent]
          '[cljfx.prop :as prop]
          '[cljfx.mutator :as mutator]
@@ -171,12 +172,12 @@
 (def ^:private ext-with-parent-props
   (fx/make-ext-with-props fx.parent/props))
 
-(defn- inspector-handle-root-event [state {:keys [fx/event]}]
+(defn- inspector-handle-root-event [state {:keys [fx/event shortcut]}]
   (if (instance? KeyEvent event)
     (let [^KeyEvent event event]
       (if (= KeyEvent/KEY_PRESSED (.getEventType event))
-        (condp = (.getCode event)
-          KeyCode/F12 (update state :showing not)
+        (if (.match ^KeyCombination shortcut event)
+          (update state :showing not)
           state)
         state))
     state))
@@ -309,16 +310,18 @@
                                e
                                (.dispatchEvent dispatcher e next)))))))
 
-(defn- inspector-root-view [{:keys [components showing type->id path]}]
+(defn- inspector-root-view [{:keys [components showing type->id path inspector-shortcut]}]
   (let [^Scene scene (->> components
                           (tree-seq :children #(vals (:children %)))
                           (keep :component)
                           (map component/instance)
                           (some #(when (instance? Scene %) %)))
-        root (some-> scene .getRoot)]
+        root (some-> scene .getRoot)
+        shortcut (coerce/key-combination inspector-shortcut)]
     (if root
       {:fx/type ext-with-parent-props
-       :props {:event-filter {:fn #'inspector-handle-root-event}}
+       :props {:event-filter {:fn #'inspector-handle-root-event
+                              :shortcut shortcut}}
        :desc (cond-> {:fx/type inspector-popup-view
                       :auto-hide true
                       :hide-on-escape true
@@ -378,7 +381,7 @@
       m
       (apply update-in m k f args))))
 
-(defn- wrap-lifecycle [fx-type type->lifecycle type->id]
+(defn- wrap-lifecycle [fx-type type->lifecycle type->id inspector-shortcut]
   (let [lifecycle (or (type->lifecycle fx-type) fx-type)]
     (reify lifecycle/Lifecycle
       (create [_ desc opts]
@@ -386,9 +389,8 @@
               old-stack (::stack opts)
               stack (conj old-stack component-info)
               state (or (::state opts) (doto (atom {:components {}
-                                                    :type->id type->id}) init-state!
-                                         ;; mount here, add root node search / listener as view
-                                         #_(->> (def --state))))
+                                                    :inspector-shortcut inspector-shortcut
+                                                    :type->id type->id}) init-state!))
               opts (assoc opts ::stack stack ::state state)]
           (try
             (ensure-valid-desc desc fx-type type->lifecycle type->id)
@@ -422,6 +424,3 @@
           (try
             (lifecycle/delete lifecycle (:child component) opts)
             (catch Exception ex (re-throw-with-stack type->id ex stack))))))))
-
-;; TODO
-;; make shortcut configurable
