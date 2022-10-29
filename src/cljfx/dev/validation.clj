@@ -251,7 +251,8 @@
       (pr-str x))))
 
 (defn- on-inspector-table-key-pressed [^KeyEvent e]
-  (when (= KeyCode/C (.getCode e))
+  (when (and (.isShortcutDown e) (= KeyCode/C (.getCode e)))
+    (.consume e)
     (let [^TableView table (.getTarget e)
           ^TablePosition pos (first (.getSelectedCells (.getSelectionModel table)))]
       (.setContent
