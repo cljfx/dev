@@ -17,7 +17,8 @@
 (def ^:private help-ui-css
   (let [primary-color "#4E84E0"]
     (css/register ::css
-      {".list-view"
+      {"*" {:-fx-font-size 13 :-fx-font-family "system"}
+       ".list-view"
        {:-fx-background-color :transparent
         :-fx-border-width [0 1 0 0]
         :-fx-border-color "#aaa"
@@ -71,7 +72,8 @@
                      :-fx-fixed-cell-size 24
                      ":focused > .virtual-flow > .clipped-container > .sheet > .tree-cell:focused"
                      {:-fx-background-color primary-color}}
-       ".tree-cell" {:-fx-background-color :transparent}
+       ".tree-cell" {:-fx-background-color :transparent
+                     :-fx-text-fill "#000"}
        ".inspector" {"-backdrop" {:-fx-background-color "#ccc"
                                   :-fx-effect "dropshadow(gaussian, #0006, 10, 0, 0, 5)"}
                      "-root" {:-fx-pref-width 300
@@ -80,6 +82,7 @@
                               :-fx-max-height 500
                               :-fx-background-color :transparent}}
        ".table" {"-view" {:-fx-background-color :transparent
+                          :-fx-fixed-cell-size 25
                           :-fx-border-color ["#aaa" :transparent :transparent :transparent]
                           "> .column-header-background"
                           {:-fx-background-color :transparent
@@ -91,7 +94,7 @@
                           ":focused" {:-fx-background-color "#4E84E033"}}
                  "-column" {:-fx-background-color :transparent
                             :-fx-border-color [:transparent "#aaa" :transparent :transparent]
-                            " .label" {:-fx-alignment :center-left}}
+                            " .label" {:-fx-alignment :center-left :-fx-text-fill "#000"}}
                  "-row-cell" {:-fx-background-color :transparent}}})))
 
 (defn- type->string [type->id fx-type]
@@ -227,7 +230,9 @@
     {:text (str type (when text (str " - " (pr-str text))))}))
 
 (defn on-inspector-tree-view-selection-changed [state {:keys [^TreeItem fx/event]}]
-  (assoc state :path (subvec (:path (.getValue event)) 1)))
+  (if event
+    (assoc state :path (subvec (:path (.getValue event)) 1))
+    (dissoc state :path)))
 
 (defn- initialize-inspector-table! [^TableView table]
   (.selectFirst (.getSelectionModel table))
@@ -306,7 +311,7 @@
                            (dispatchEvent [_ e next]
                              (if (and (instance? KeyEvent e)
                                       (= KeyEvent/KEY_PRESSED (.getEventType e))
-                                      (= KeyCode/ESCAPE (.getCode ^KeyEvent e)))
+                                      (#{KeyCode/ESCAPE KeyCode/SPACE} (.getCode ^KeyEvent e)))
                                e
                                (.dispatchEvent dispatcher e next)))))))
 
