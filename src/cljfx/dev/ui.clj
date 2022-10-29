@@ -1,65 +1,6 @@
 (in-ns 'cljfx.dev)
-(import '[javafx.scene.input KeyEvent]
-        '[javafx.stage Popup]
-        '[javafx.scene Node])
-(require '[cljfx.ext.list-view :as fx.ext.list-view]
-         '[cljfx.prop :as prop]
-         '[cljfx.mutator :as mutator]
-         '[cljfx.component :as component]
-         '[cljfx.css :as css])
 
-(def ^:private help-ui-css
-  (css/register ::css
-    {".list-view"
-       {:-fx-background-color :transparent
-        :-fx-border-width [0 1 0 0]
-        :-fx-border-color "#aaa"
-        ":focused > .virtual-flow > .clipped-container > .sheet > .list-cell:focused"
-          {:-fx-background-color "#4E84E0"}}
-     ".tab-pane:focused > .tab-header-area > .headers-region > .tab:selected .focus-indicator"
-     {:-fx-border-color "#4E84E0"
-      :-fx-border-width 2
-      :-fx-border-insets [-4 -4 -15 -5]
-      :-fx-border-radius "5"}
-     ".tab" {:-fx-background-color "#aaa, #c2c2c2"
-             :-fx-background-radius "6 6 0 0, 5 5 0 0"
-             ":selected" {:-fx-background-color "#aaa, #ccc"}}
-     ".tab-header-background" {:-fx-background-color "#aaa, #ccc, #ccc"}
-     ".popup-root" {:-fx-background-color "#ddd"
-                    :-fx-effect "dropshadow(gaussian, #0006, 8, 0, 0, 2)"}
-     ".filter-term" {:-fx-background-color "#42B300"
-                     :-fx-background-radius 2
-                     :-fx-effect "dropshadow(gaussian, #0006, 4, 0, 0, 2)"
-                     :-fx-padding [2 4]}
-     ".list-cell" {:-fx-background-color :transparent
-                   :-fx-text-fill "#000"
-                   :-fx-font-size 14
-                   :-fx-padding [2 4]
-                   ":selected" {:-fx-background-color "#4E84E033"}}
-     ".text-area" {:-fx-background-color :transparent
-                   :-fx-focus-traversable false
-                   :-fx-text-fill "#000"
-                   " .content" {:-fx-background-color :transparent}}
-     ".scroll-pane" {:-fx-background-color :transparent
-                     :-fx-padding 0
-                     "> .viewport" {:-fx-background-color :transparent}}
-     ".scroll-bar" {:-fx-background-color :transparent
-                    "> .thumb" {:-fx-background-color "#999"
-                                :-fx-background-insets 0
-                                :-fx-background-radius 4
-                                ":hover" {:-fx-background-color "#9c9c9c"}
-                                ":pressed" {:-fx-background-color "#aaa"}}
-                    ":horizontal" {"> .increment-button > .increment-arrow" {:-fx-pref-height 7}
-                                   "> .decrement-button > .decrement-arrow" {:-fx-pref-height 7}}
-                    ":vertical" {"> .increment-button > .increment-arrow" {:-fx-pref-width 7}
-                                 "> .decrement-button > .decrement-arrow" {:-fx-pref-width 7}}
-                    "> .decrement-button" {:-fx-padding 0
-                                           "> .decrement-arrow" {:-fx-shape nil
-                                                                 :-fx-padding 0}}
-                    "> .increment-button" {:-fx-padding 0
-                                           "> .increment-arrow" {:-fx-shape nil
-                                                                 :-fx-padding 0}}}
-     ".corner" {:-fx-background-color :transparent}}))
+(require '[cljfx.ext.list-view :as fx.ext.list-view])
 
 (defn- set-help-ui-selection [state {:keys [key fx/event]}]
   (update state key assoc :selection event))

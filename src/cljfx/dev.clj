@@ -383,7 +383,3 @@
   []
   (launch-help-ui!)
   nil)
-
-;; stretch goals
-;; - dev cljfx type->lifecycle wrapper that adds inspector capabilities.
-;; - dev ui builder
