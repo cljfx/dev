@@ -79,6 +79,13 @@ If you don't remember the props required by some cljfx type, or if you don't kno
 ;;  ...etc
 ```
 
+You can also use help in a UI form that shows that same information, but is easier to search for:
+```clojure
+(cljfx.dev/help-ui)
+```
+Invoking this fn will open a window with props and types reference:
+![Help UI screenshot](help-ui.png)
+
 ### Improved error messages with spec
 
 You can set validating type->lifecycle opt that will validate all cljfx component descriptions using spec and properly describe the errors:
@@ -168,6 +175,13 @@ Additionally, you can validate individual descriptions while developing:
                                    :value-converter :integer}}}})
 ;; Success!
 ```
+
+### Cljfx component inspector
+
+Using the same dev type->lifecycle opt, you also get cljfx component tree inspector that can be opened by pressing F12:
+![Inspector screenshot](inspector.png)
+
+Inspector shows a live tree of components and their props. Open shortcut can be configured using `:inspector-shortcut` argument to `wrap-type->lifecycle` fn.
 
 ## Acknowledgments
 

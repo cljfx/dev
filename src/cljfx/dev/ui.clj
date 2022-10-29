@@ -90,7 +90,7 @@
             (cond
               (string? syntax)
               [{:fx/type :text
-                :font {:family "monospace" :size 14}
+                :style {:-fx-font-family "monospace" :-fx-font-size 13}
                 :text syntax}]
 
               (vector? syntax)
@@ -99,7 +99,7 @@
                   (cond
                     (string? x)
                     {:fx/type :text
-                     :font {:family "monospace" :size 14}
+                     :style {:-fx-font-family "monospace" :-fx-font-size 13}
                      :text x}
 
                     (vector? x)
@@ -110,7 +110,7 @@
                        {::view
                         {:fx/type :label
                          :underline true
-                         :font {:family "monospace" :size 14}
+                         :style {:-fx-font-family "monospace" :-fx-font-size 13}
                          :text-fill "#000e26"
                          :on-mouse-entered
                          {:fn #'hover-help-syntax-element
