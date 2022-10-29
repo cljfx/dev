@@ -179,6 +179,7 @@ Additionally, you can validate individual descriptions while developing:
 ### Cljfx component inspector
 
 Using the same dev type->lifecycle opt, you also get cljfx component tree inspector that can be opened by pressing F12:
+
 ![Inspector screenshot](inspector.png)
 
 Inspector shows a live tree of components and their props. Open shortcut can be configured using `:inspector-shortcut` argument to `wrap-type->lifecycle` fn.
