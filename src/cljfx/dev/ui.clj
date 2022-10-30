@@ -171,6 +171,7 @@
         javadoc (get-in registry [:javadoc selected-type])]
     {:fx/type :stage
      :showing true
+     :title "cljfx/dev"
      :width 900
      :scene
      {:fx/type :scene
