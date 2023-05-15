@@ -797,6 +797,8 @@
   :parent :xy-chart
   :req [:x-axis :y-axis]
   :of 'javafx.scene.chart.BubbleChart)
+(defmethod keyword-prop->spec-form :nilable [{:keys [of]}]
+  `(s/nilable ~(keyword-prop->spec-form of)))
 (register-props! :labeled :control
   '{:alignment {:type :enum :of javafx.geometry.Pos}
     :content-display {:type :enum :of javafx.scene.control.ContentDisplay}
@@ -806,7 +808,7 @@
     :graphic-text-gap {:type :number}
     :line-spacing {:type :number}
     :mnemonic-parsing {:type :boolean}
-    :text {:type :string}
+    :text {:type :nilable :of {:type :string}}
     :text-alignment {:type :enum :of javafx.scene.text.TextAlignment}
     :text-fill {:type :paint}
     :text-overrun {:type :enum :of javafx.scene.control.OverrunStyle}

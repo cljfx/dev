@@ -8,6 +8,9 @@
                       (.getEnumConstants (resolve of)))]
     (str "either of: " (str/join ", " options))))
 
+(defmethod short-keyword-prop-help-string :nilable [{:keys [of]}]
+  (str "nil or " (short-keyword-prop-help-string of)))
+
 (defmethod short-keyword-prop-help-string :coll [{:keys [item]}]
   (str "coll of " (short-keyword-prop-help-string item)))
 
@@ -224,6 +227,11 @@
 
 (defn- splice-syntax [& syntaxes]
   (reduce #(into %1 (if (string? %2) [%2] %2)) [] syntaxes))
+
+(defmethod long-keyword-prop-help-syntax :nilable [{:keys [of]}]
+  (splice-syntax
+    "Nilable "
+    (long-keyword-prop-help-syntax of)))
 
 (defmethod long-keyword-prop-help-syntax :desc [{:keys [of]}]
   ["Cljfx desc, a map with :fx/type key
