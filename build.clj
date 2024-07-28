@@ -18,7 +18,11 @@
      :version version
      :src-dirs ["src"]
      :scm {:url "https://github.com/cljfx/dev"
-           :tag (b/git-process {:git-args ["rev-parse" "HEAD"]})}})
+           :tag (b/git-process {:git-args ["rev-parse" "HEAD"]})}
+     :pom-data [[:licenses
+                 [:license
+                  [:name "MIT"]
+                  [:url "https://opensource.org/license/mit"]]]]})
   (b/copy-dir
     {:src-dirs ["src"]
      :target-dir class-dir})
