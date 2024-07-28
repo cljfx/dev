@@ -1069,6 +1069,10 @@
            :hide-on-click {:type :boolean}}
   :of 'javafx.scene.control.CustomMenuItem)
 
+(register-composite! :separator-menu-item
+  :parent :custom-menu-item
+  :of 'javafx.scene.control.SeparatorMenuItem)
+
 (register-composite! :cylinder
   :parent :shape3d
   :props '{:height {:type :number}
@@ -2671,6 +2675,7 @@
         :scroll-bar "javafx.controls/javafx/scene/control/ScrollBar.html"
         :scroll-pane "javafx.controls/javafx/scene/control/ScrollPane.html"
         :separator "javafx.controls/javafx/scene/control/Separator.html"
+        :separator-menu-item "javafx.controls/javafx/scene/control/SeparatorMenuItem.html"
         :sepia-tone "javafx.graphics/javafx/scene/effect/SepiaTone.html"
         :sequential-transition "javafx.graphics/javafx/animation/SequentialTransition.html"
         :shadow "javafx.graphics/javafx/scene/effect/Shadow.html"
@@ -2964,4 +2969,4 @@
 
       ret)))
 
-#_(infer-reg "directional-light")
+#_(infer-reg "separator-menu-item")

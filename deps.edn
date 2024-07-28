@@ -1,4 +1,4 @@
-{:deps {cljfx/cljfx {:mvn/version "1.7.22"}
+{:deps {cljfx/cljfx {:mvn/version "1.9.1"}
         cljfx/css {:mvn/version "1.1.0"}}
  :aliases {;; clj -T:build deploy
            :build {:deps {io.github.clojure/tools.build {:git/tag "v0.8.2" :git/sha "ba1a2bf"}

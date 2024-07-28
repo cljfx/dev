@@ -1,4 +1,5 @@
 (in-ns 'cljfx.dev)
+(import '[clojure.lang IRef])
 
 (s/def :cljfx.ext-on-instance-lifecycle/on-created ifn?)
 (s/def :cljfx.ext-on-instance-lifecycle/on-advanced ifn?)
@@ -43,4 +44,29 @@
 
 (register-type! `fx/make-ext-with-props
   :spec (s/keys :req-un [:cljfx/desc :cljfx.make-ext-with-props/props])
+  :of :desc)
+
+(s/def :cljfx.ext-watcher/ref (instance-of IRef))
+
+(register-type! `fx/ext-watcher
+  :spec (s/keys :req-un [:cljfx/desc :cljfx.ext-watcher/ref])
+  :of :desc)
+
+(s/def :cljfx.ext-state/initial-state any?)
+
+(register-type! `fx/ext-state
+  :spec (s/keys :req-un [:cljfx/desc :cljfx.ext-state/initial-state])
+  :of :desc)
+
+(s/def :cljfx.ext-effect/fn ifn?)
+(s/def :cljfx.ext-effect/args (s/nilable (s/coll-of any? :kind sequential?)))
+
+(register-type! `fx/ext-effect
+  :spec (s/keys :req-un [:cljfx/desc :cljfx.ext-effect/args :cljfx.ext-effect/fn])
+  :of :desc)
+
+(s/def :cljfx.ext-recreate-on-key-changed/key any?)
+
+(register-type! `fx/ext-recreate-on-key-changed
+  :spec (s/keys :req-un [:cljfx/desc :cljfx.ext-recreate-on-key-changed/key])
   :of :desc)
