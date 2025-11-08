@@ -122,10 +122,23 @@
        (mapcat (fn [{:keys [pred val in] :as problem}]
                  (cond
                    (and (sequential? pred)
-                        (= `only-keys (first pred)))
+                        (= `prop-keys (first pred)))
                    (let [ks (set/difference (set (keys val)) (second pred))]
-                     (for [k ks]
-                       (assoc problem :val k :reason "unexpected prop")))
+                     (for [k ks
+                           p (if (instance? Prop k)
+                               (if-let [prop-problems (some-> (:cljfx/prop (meta k))
+                                                              (-> prop->spec-form
+                                                                  eval
+                                                                  (s/explain-data (get val k))
+                                                                  ::s/problems))]
+                                 (let [in (conj (:in problem) (:cljfx/id (meta k)))]
+                                   (map
+                                     (fn [prop-problem]
+                                       (update prop-problem :in #(into in %)))
+                                     prop-problems))
+                                 [])
+                               [(assoc problem :val k :reason "unexpected prop")])]
+                       p))
 
                    (and (sequential? pred)
                         (= `keys-satisfy (first pred)))

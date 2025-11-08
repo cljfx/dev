@@ -3,7 +3,7 @@
             [cemerick.pomegranate.aether :as aether]))
 
 (def lib 'io.github.cljfx/dev)
-(def version (format "1.0.%s" (b/git-count-revs nil)))
+(def version (format "1.10.1.%s" (b/git-count-revs nil)))
 (def class-dir "target/classes")
 (def basis (b/create-basis {:project "deps.edn"}))
 (def jar-file (format "target/%s-%s.jar" (name lib) version))

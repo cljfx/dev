@@ -28,7 +28,9 @@
   (:require [cljfx.lifecycle :as lifecycle]
             [cljfx.api :as fx]
             [clojure.spec.alpha :as s]
-            [clojure.set :as set]))
+            cljfx.prop
+            [clojure.set :as set])
+  (:import [cljfx.prop Prop]))
 
 (def ^:private registry
   ;; types is a map:
@@ -155,10 +157,6 @@
   (swap! registry update :types assoc id (assoc opts :id id))
   id)
 
-(defn only-keys [ks]
-  (fn [m]
-    (every? #(contains? ks %) (keys m))))
-
 (defn instance-of [c]
   (fn [x]
     (instance? c x)))
@@ -176,6 +174,15 @@
       `(instance-of ~type)
       (keyword-prop->spec-form prop))))
 
+(defn prop-keys [ks]
+  (fn [m]
+    (every? #(or (contains? ks %)
+                 (and (instance? Prop %)
+                      (if-let [prop-config (:cljfx/prop (meta %))]
+                        (s/valid? (eval (prop->spec-form prop-config)) (m %))
+                        true)))
+            (keys m))))
+
 (defn make-composite-spec [id & {:keys [req]}]
   (let [props (-> @registry :props (get id))
         ks (set (keys props))
@@ -191,7 +198,7 @@
                                  [(list* 'or (mapv #(list* 'and (mapv k->spec-kw %)) req))]
                                  (mapv k->spec-kw req))])
                   :opt-un ~(into [] (map k->spec-kw) (sort ks)))
-                (only-keys ~ks))))))
+                (prop-keys ~ks))))))
 
 (defn register-composite!
   "Associate a composite lifecycle type description with some id
