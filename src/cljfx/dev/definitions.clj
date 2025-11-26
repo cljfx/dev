@@ -959,6 +959,7 @@
 (register-composite! :color-picker
   :parent :combo-box-base
   :props '{:custom-colors {:type :coll :item {:type :color}}
+           :on-custom-colors-changed {:type :event-handler :of javafx.collections.ListChangeListener}
            :value {:type :color}}
   :of 'javafx.scene.control.ColorPicker)
 
