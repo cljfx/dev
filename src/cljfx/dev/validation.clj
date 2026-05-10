@@ -11,7 +11,7 @@
         '[javafx.event EventDispatcher]
         '[javafx.stage Popup]
         '[javafx.scene.text Text]
-        '[javafx.scene.input KeyEvent Clipboard ClipboardContent]
+        '[javafx.scene.input KeyCode KeyEvent Clipboard ClipboardContent]
         '[javafx.scene.control Label TreeItem TableView TablePosition])
 
 (def ^:private help-ui-css
