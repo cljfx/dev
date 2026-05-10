@@ -8,17 +8,23 @@
 (defn- set-help-ui-filter-term [state {:keys [key ^KeyEvent fx/event]}]
   (let [ch (.getCharacter event)]
     (cond
-      (and (= 1 (count ch)) (#{127 27} (int (first ch))))
-      (update state key assoc :filter-term "")
-
-      (= ch "\b")
-      (update-in state [key :filter-term] #(cond-> % (pos? (count %)) (subs 0 (dec (count %)))))
-
       (= ch "\t")
       state
 
       (re-matches #"^[a-zA-Z0-9:/\-.+!@#$%^&*()-={}\[\]<>?,/\\'\"]$" ch)
       (update-in state [key :filter-term] str (.getCharacter event))
+
+      :else
+      state)))
+
+(defn- clear-help-ui-filter-term [state {:keys [key ^KeyEvent fx/event]}]
+  (let [code (.getCode event)]
+    (cond
+      (#{KeyCode/ESCAPE KeyCode/DELETE} code)
+      (update state key assoc :filter-term "")
+
+      (= code KeyCode/BACK_SPACE)
+      (update-in state [key :filter-term] #(cond-> % (pos? (count %)) (subs 0 (dec (count %)))))
 
       :else
       state)))
@@ -32,6 +38,8 @@
                        :on-selected-item-changed {:fn #'set-help-ui-selection :key key}}
                :desc {:fx/type :list-view
                       :on-key-typed {:fn #'set-help-ui-filter-term :key key}
+                      ;; KEY_TYPED event for BACKSPACE, DELETE and ESCAPE does not have a character value on macOS
+                      :on-key-pressed {:fn #'clear-help-ui-filter-term :key key}
                       :items items}}
               {:fx/type :label
                :visible (boolean (seq filter-term))
